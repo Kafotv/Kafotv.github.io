@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://90show.tv/sitemap.xml
