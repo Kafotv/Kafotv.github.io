@@ -197,7 +197,7 @@ function subscribeToData() {
     });
 
     // 4. Advanced Ads
-    db.collection('ads').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+    db.collection('ads').onSnapshot(snapshot => {
         ADS = [];
         snapshot.forEach(doc => ADS.push({ id: doc.id, ...doc.data() }));
         renderAdminAds();
@@ -369,6 +369,8 @@ function loadStream(url, audioUrl = "", type = "hls") {
         const video = document.createElement('video');
         video.id = 'player';
         video.playsInline = true;
+        video.autoplay = true;
+        video.muted = true;
         video.controls = true;
         video.crossOrigin = 'anonymous';
         container.appendChild(video);
@@ -402,9 +404,11 @@ function loadStream(url, audioUrl = "", type = "hls") {
 
 function getPlyrConfig() {
     return {
+        autoplay: true,
+        muted: true,
         controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
         i18n: { play: 'تشغيل', pause: 'إيقاف', mute: 'كتم', settings: 'إعدادات' },
-        youtube: { noCookie: true, rel: 0, modestbranding: 1, iv_load_policy: 3 }
+        youtube: { noCookie: true, rel: 0, modestbranding: 1, iv_load_policy: 3, autoplay: 1, mute: 1 }
     };
 }
 
@@ -1189,7 +1193,7 @@ function renderAdminAds() {
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <div style="width: 8px; height: 8px; border-radius: 50%; background: ${ad.active ? 'var(--accent-neon)' : '#ff3b30'};"></div>
-                    <span style="font-size: 12px; font-weight: 800;">${ad.type.toUpperCase()}</span>
+                    <span style="font-size: 12px; font-weight: 800;">${(ad.type || 'IMAGE').toUpperCase()}</span>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button onclick="showAdForm('${ad.id}')" style="background: none; border: none; color: var(--accent-neon); cursor: pointer;">
@@ -1202,22 +1206,26 @@ function renderAdminAds() {
             </div>
             <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between;">
                 <span>الهدف: ${ad.target === 'all' ? 'الكل' : ad.target === 'main' ? 'الرئيسي' : 'الأطفال'}</span>
-                <span style="color: var(--accent-neon); font-weight: 900;">🔥 ${Object.values(ad.item_clicks || {}).reduce((a, b) => a + b, 0) || ad.clicks || 0} نقرة</span>
+                <span style="color: var(--accent-neon); font-weight: 900;">🔥 ${Object.values(ad.item_clicks || {}).reduce((a, b) => a + Number(b), 0) || ad.clicks || 0} نقرة</span>
             </div>
-            ${ad.type === 'dual' || ad.type === 'slider' || ad.type === 'triple' ? `
+            ${(ad.type === 'slider' || ad.type === 'dual' || ad.type === 'triple') ? `
                 <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 8px;">
-                    ${ad.items.map((_, i) => `<span>عنصر ${i + 1}: <b style="color:#fff">${ad.item_clicks?.[String(i)] || 0}</b></span>`).join('')}
+                    ${(ad.items || []).map((_, i) => `<span>عنصر ${i + 1}: <b style="color:#fff">${ad.item_clicks?.[String(i)] || 0}</b></span>`).join('')}
                 </div>
             ` : ''}
-            <div style="width: 100%; height: 60px; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--glass-stroke);">
+            <div style="width: 100%; height: 60px; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--glass-stroke); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); text-align: center; padding: 5px;">
                 ${ad.type === 'video' ?
-            `<img src="https://img.youtube.com/vi/${getYouTubeId(ad.items[0].url) || '0'}/mqdefault.jpg" style="width: 100%; height: 100%; object-fit: cover;">` :
-            `<img src="${ad.items[0].url}" style="width: 100%; height: 100%; object-fit: cover;">`
+            `<img src="https://img.youtube.com/vi/${getYouTubeId(ad.items?.[0]?.url || '') || '0'}/mqdefault.jpg" style="width: 100%; height: 100%; object-fit: cover;">` :
+            ad.type === 'script' ?
+                `<div style="line-height:1.2; overflow:hidden; font-family: monospace; white-space: pre-wrap; word-break: break-all;">{ كود برمجي }<br>${(ad.script || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])).substring(0, 40)}...</div>` :
+                `<img src="${ad.items?.[0]?.url || ''}" style="width: 100%; height: 100%; object-fit: cover;">`
         }
             </div>
-            <button onclick="toggleAdCardStatus('${ad.id}', ${!ad.active})" class="btn-primary btn-sm btn-outline" style="margin-top: 12px; font-size: 10px;">
-                ${ad.active ? 'إيقاف مؤقت' : 'تفعيل الآن'}
-            </button>
+            <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+                <button onclick="toggleAdCardStatus('${ad.id}', ${!ad.active})" class="btn-primary btn-sm btn-outline" style="width: 100%; font-size: 10px; height: 32px;">
+                    ${ad.active ? 'إيقاف مؤقت' : 'تفعيل الآن'}
+                </button>
+            </div>
         </div>
     `).join('');
 }
@@ -1251,74 +1259,80 @@ function renderAd() {
 
     container.style.display = 'block';
 
-    // For now, show the latest active ad. If it's a slider, start rotation.
-    const ad = activeAds[0];
+    // Clear existing contents to re-render all
+    container.innerHTML = '';
 
-    if (ad.type === 'slider') {
-        let currentIndex = 0;
-        const renderSliderItem = (index) => {
-            const item = ad.items[index];
-            container.innerHTML = `
-                <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${index})" class="ad-box slide-fade">
-                    <img src="${item.url}" alt="إعلان">
-                </a>
-            `;
-        };
+    activeAds.forEach((ad, adIndex) => {
+        const adWrapper = document.createElement('div');
+        adWrapper.className = 'ad-item-wrapper';
+        adWrapper.style.marginBottom = adIndex < activeAds.length - 1 ? '15px' : '0';
+        container.appendChild(adWrapper);
 
-        renderSliderItem(0);
-        if (ad.items.length > 1) {
-            adSliderIntervals[ad.id] = setInterval(() => {
-                currentIndex = (currentIndex + 1) % ad.items.length;
-                renderSliderItem(currentIndex);
-            }, ad.interval || 5000);
-        }
-    } else if (ad.type === 'dual' || ad.type === 'triple') {
-        container.innerHTML = `
-            <div class="${ad.type === 'dual' ? 'ad-grid' : 'ad-grid-triple'}">
-                ${ad.items.slice(0, ad.type === 'dual' ? 2 : 3).map((item, idx) => `
-                    <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${idx})" class="ad-box ad-box-slim">
+        if (ad.type === 'slider') {
+            let currentIndex = 0;
+            const renderSliderItem = (index) => {
+                const item = ad.items[index];
+                adWrapper.innerHTML = `
+                    <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${index})" class="ad-box slide-fade">
                         <img src="${item.url}" alt="إعلان">
                     </a>
-                `).join('')}
-            </div>
-        `;
-    } else if (ad.type === 'video') {
-        const item = ad.items[0];
-        const ytId = getYouTubeId(item.url);
-        if (ytId) {
-            container.innerHTML = `
-                <div class="ad-box">
-                    <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}" 
-                            allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                `;
+            };
+
+            renderSliderItem(0);
+            if (ad.items.length > 1) {
+                adSliderIntervals[ad.id] = setInterval(() => {
+                    currentIndex = (currentIndex + 1) % ad.items.length;
+                    renderSliderItem(currentIndex);
+                }, ad.interval || 5000);
+            }
+        } else if (ad.type === 'dual' || ad.type === 'triple') {
+            adWrapper.innerHTML = `
+                <div class="${ad.type === 'dual' ? 'ad-grid' : 'ad-grid-triple'}">
+                    ${ad.items.slice(0, ad.type === 'dual' ? 2 : 3).map((item, idx) => `
+                        <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${idx})" class="ad-box ad-box-slim">
+                            <img src="${item.url}" alt="إعلان">
+                        </a>
+                    `).join('')}
                 </div>
             `;
+        } else if (ad.type === 'video') {
+            const item = ad.items[0];
+            const ytId = getYouTubeId(item.url);
+            if (ytId) {
+                adWrapper.innerHTML = `
+                    <div class="ad-box">
+                        <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}" 
+                                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    </div>
+                `;
+            } else {
+                const targetId = `vid-${Math.random().toString(36).substr(2, 9)}`;
+                adWrapper.innerHTML = `
+                    <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
+                        <video id="${targetId}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;"></video>
+                    </a>
+                `;
+                renderProtectedVideo(targetId, item.url);
+            }
+        } else if (ad.type === 'script') {
+            try {
+                const range = document.createRange();
+                const frag = range.createContextualFragment(ad.script || '');
+                adWrapper.appendChild(frag);
+            } catch (e) {
+                console.error("Script Ad error:", e);
+                adWrapper.innerHTML = `<p style="color:red; font-size:10px;">خطأ في تحميل الكود البرمجي</p>`;
+            }
         } else {
-            // Video Ad with High-Level Protection (HLS / Blob)
-            const targetId = `vid-${Math.random().toString(36).substr(2, 9)}`;
-            container.innerHTML = `
-                <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
-                    <video id="${targetId}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;"></video>
+            const firstItem = ad.items?.[0] || { url: '', link: '#' };
+            adWrapper.innerHTML = `
+                <a href="${firstItem.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
+                    <img src="${firstItem.url}" alt="إعلان">
                 </a>
             `;
-            renderProtectedVideo(targetId, item.url);
         }
-    } else if (ad.type === 'script') {
-        container.innerHTML = '';
-        try {
-            const range = document.createRange();
-            const frag = range.createContextualFragment(ad.script);
-            container.appendChild(frag);
-        } catch (e) {
-            console.error("Script Ad error:", e);
-            container.innerHTML = `<p style="color:red; font-size:10px;">خطأ في تحميل الكود البرمجي</p>`;
-        }
-    } else {
-        container.innerHTML = `
-            <a href="${ad.items[0].link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
-                <img src="${ad.items[0].url}" alt="إعلان">
-            </a>
-        `;
-    }
+    });
 }
 
 function trackAdClick(adId, itemIndex = 0) {
@@ -1384,11 +1398,34 @@ function trackVisit() {
     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const yearKey = `${now.getFullYear()}`;
 
-    // Update global, monthly, and yearly stats
+    // Traffic Source Logic
+    const referrer = document.referrer.toLowerCase();
+    let source = 'direct';
+
+    if (!referrer) {
+        source = 'direct';
+    } else if (referrer.includes('facebook.com') || referrer.includes('fb.me')) {
+        source = 'facebook';
+    } else if (referrer.includes('instagram.com')) {
+        source = 'instagram';
+    } else if (referrer.includes('google.')) {
+        source = 'google';
+    } else if (referrer.includes('tiktok.com')) {
+        source = 'tiktok';
+    } else if (referrer.includes('t.co') || referrer.includes('twitter.com')) {
+        source = 'twitter';
+    } else {
+        source = 'others';
+    }
+
     const batch = db.batch();
     batch.set(db.collection('stats').doc('global'), { total: firebase.firestore.FieldValue.increment(1) }, { merge: true });
     batch.set(db.collection('stats').doc('monthly'), { [monthKey]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
     batch.set(db.collection('stats').doc('yearly'), { [yearKey]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
+
+    // Store Referrer Stats
+    batch.set(db.collection('stats').doc('referrers'), { [source]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
+
     batch.commit().catch(e => console.error("Stats Error:", e));
 }
 
@@ -1430,6 +1467,40 @@ function subscribeToStats() {
             el.textContent = doc.data()[yearKey] || 0;
         } else {
             el.textContent = 0;
+        }
+    });
+
+    // Referrers Stats Listener
+    db.collection('stats').doc('referrers').onSnapshot(doc => {
+        const list = document.getElementById('admin-referrers-list');
+        if (!list) return;
+
+        if (doc.exists) {
+            const data = doc.data();
+            const total = Object.values(data).reduce((a, b) => a + b, 0) || 1;
+            const sourceLabels = {
+                facebook: { name: 'فيسبوك', color: '#1877F2' },
+                instagram: { name: 'انستقرام', color: '#E4405F' },
+                google: { name: 'جوجل', color: '#4285F4' },
+                tiktok: { name: 'تيك توك', color: '#000000' },
+                twitter: { name: 'تويتر/X', color: '#1DA1F2' },
+                direct: { name: 'دخول مباشر', color: '#00FF94' },
+                others: { name: 'أخرى', color: '#666' }
+            };
+
+            list.innerHTML = Object.entries(data).sort((a, b) => b[1] - a[1]).map(([source, count]) => {
+                const label = sourceLabels[source] || { name: source, color: 'var(--accent-neon)' };
+                const percent = Math.round((count / total) * 100);
+                return `
+                    <div class="referrer-item" style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-stroke); padding: 10px; border-radius: 12px; text-align: center;">
+                        <div style="font-size: 9px; color: ${label.color}; font-weight: 900; margin-bottom: 4px; text-transform: uppercase;">${label.name}</div>
+                        <div style="font-size: 16px; font-weight: 900; color: #fff;">${count}</div>
+                        <div style="font-size: 9px; color: var(--text-muted);">${percent}%</div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            list.innerHTML = '<div style="font-size: 10px; color: var(--text-muted); grid-column: 1/-1;">لا توجد بيانات بعد...</div>';
         }
     });
 }
