@@ -29,14 +29,31 @@
 
     <!-- Structured Data -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "TVStation",
-      "name": "Kafomnak Kids",
-      "url": "https://kafotv.github.io/kids.html",
-      "genre": "Children",
-      "description": "محطة رقمية مخصصة للأطفال تعرض محتوى ترفيهي وتعليمي آمن."
-    }
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "TVStation",
+        "name": "Kafomnak Kids",
+        "url": "https://kafotv.github.io/kids.html",
+        "genre": "Children",
+        "description": "محطة رقمية مخصصة للأطفال تعرض محتوى ترفيهي وتعليمي آمن."
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        "name": "Kafomnak Kids Live",
+        "description": "بث مباشر لقنوات الأطفال والكرتون - بيئة آمنة.",
+        "thumbnailUrl": [
+          "https://kafotv.github.io/assets/kids-og.jpg"
+        ],
+        "uploadDate": "2026-01-01T00:00:00+00:00",
+        "publication": {
+          "@type": "BroadcastEvent",
+          "isLiveBroadcast": true,
+          "startDate": "2026-01-01T00:00:00+00:00"
+        }
+      }
+    ]
     </script>
 
     <!-- PWA -->
