@@ -32,19 +32,36 @@
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Kafomnak",
-      "alternateName": ["كفومنك", "Kafomnak"],
-      "url": "https://kafotv.github.io/",
-      "description": "منصة بث مباشر للقنوات الفضائية والمباريات.",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://kafotv.github.io/search?q={search_term_string}",
-        "query-input": "required name=search_term_string"
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Kafomnak",
+        "alternateName": ["كفومنك", "Kafomnak"],
+        "url": "https://kafotv.github.io/",
+        "description": "منصة بث مباشر للقنوات الفضائية والمباريات.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://kafotv.github.io/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        "name": "Kafomnak Live Stream",
+        "description": "بث مباشر للقنوات الفضائية والمباريات بجودة عالية.",
+        "thumbnailUrl": [
+          "https://kafotv.github.io/assets/og-image.jpg"
+        ],
+        "uploadDate": "2026-01-01T00:00:00+00:00",
+        "publication": {
+          "@type": "BroadcastEvent",
+          "isLiveBroadcast": true,
+          "startDate": "2026-01-01T00:00:00+00:00"
+        }
       }
-    }
+    ]
     </script>
 
     <!-- PWA -->
