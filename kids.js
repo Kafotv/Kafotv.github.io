@@ -107,7 +107,7 @@ function subscribeToKidsData() {
     }, err => console.error("Kids Channels Sync Error:", err));
 
     // 2. Advanced Ads
-    db.collection('ads').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+    db.collection('ads').onSnapshot(snapshot => {
         ADS = [];
         snapshot.forEach(doc => ADS.push({ id: doc.id, ...doc.data() }));
         renderAd();
@@ -152,72 +152,80 @@ function renderAd() {
 
     container.style.display = 'block';
 
-    const ad = activeAds[0];
+    // Clear existing contents to re-render all
+    container.innerHTML = '';
 
-    if (ad.type === 'slider') {
-        let currentIndex = 0;
-        const renderSliderItem = (index) => {
-            const item = ad.items[index];
-            container.innerHTML = `
-                <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${index})" class="ad-box slide-fade">
-                    <img src="${item.url}" alt="إعلان">
-                </a>
-            `;
-        };
+    activeAds.forEach((ad, adIndex) => {
+        const adWrapper = document.createElement('div');
+        adWrapper.className = 'ad-item-wrapper';
+        adWrapper.style.marginBottom = adIndex < activeAds.length - 1 ? '15px' : '0';
+        container.appendChild(adWrapper);
 
-        renderSliderItem(0);
-        if (ad.items.length > 1) {
-            adSliderIntervals[ad.id] = setInterval(() => {
-                currentIndex = (currentIndex + 1) % ad.items.length;
-                renderSliderItem(currentIndex);
-            }, ad.interval || 5000);
-        }
-    } else if (ad.type === 'dual' || ad.type === 'triple') {
-        container.innerHTML = `
-            <div class="${ad.type === 'dual' ? 'ad-grid' : 'ad-grid-triple'}">
-                ${ad.items.slice(0, ad.type === 'dual' ? 2 : 3).map((item, idx) => `
-                    <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${idx})" class="ad-box ad-box-slim">
+        if (ad.type === 'slider') {
+            let currentIndex = 0;
+            const renderSliderItem = (index) => {
+                const item = ad.items[index];
+                adWrapper.innerHTML = `
+                    <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${index})" class="ad-box slide-fade">
                         <img src="${item.url}" alt="إعلان">
                     </a>
-                `).join('')}
-            </div>
-        `;
-    } else if (ad.type === 'video') {
-        const item = ad.items[0];
-        const ytId = getYouTubeId(item.url);
-        if (ytId) {
-            container.innerHTML = `
-                <div class="ad-box">
-                    <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}" 
-                            allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                `;
+            };
+
+            renderSliderItem(0);
+            if (ad.items.length > 1) {
+                adSliderIntervals[ad.id] = setInterval(() => {
+                    currentIndex = (currentIndex + 1) % ad.items.length;
+                    renderSliderItem(currentIndex);
+                }, ad.interval || 5000);
+            }
+        } else if (ad.type === 'dual' || ad.type === 'triple') {
+            adWrapper.innerHTML = `
+                <div class="${ad.type === 'dual' ? 'ad-grid' : 'ad-grid-triple'}">
+                    ${ad.items.slice(0, ad.type === 'dual' ? 2 : 3).map((item, idx) => `
+                        <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${idx})" class="ad-box ad-box-slim">
+                            <img src="${item.url}" alt="إعلان">
+                        </a>
+                    `).join('')}
                 </div>
             `;
+        } else if (ad.type === 'video') {
+            const item = ad.items[0];
+            const ytId = getYouTubeId(item.url);
+            if (ytId) {
+                adWrapper.innerHTML = `
+                    <div class="ad-box">
+                        <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}" 
+                                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    </div>
+                `;
+            } else {
+                const targetId = `vid-${Math.random().toString(36).substr(2, 9)}`;
+                adWrapper.innerHTML = `
+                    <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
+                        <video id="${targetId}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;"></video>
+                    </a>
+                `;
+                renderProtectedVideo(targetId, item.url);
+            }
+        } else if (ad.type === 'script') {
+            try {
+                const range = document.createRange();
+                const frag = range.createContextualFragment(ad.script || '');
+                adWrapper.appendChild(frag);
+            } catch (e) {
+                console.error("Script Ad error:", e);
+                adWrapper.innerHTML = `<p style="color:red; font-size:10px;">خطأ في تحميل الكود البرمجي</p>`;
+            }
         } else {
-            const targetId = `vid-${Math.random().toString(36).substr(2, 9)}`;
-            container.innerHTML = `
-                <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
-                    <video id="${targetId}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;"></video>
+            const firstItem = ad.items?.[0] || { url: '', link: '#' };
+            adWrapper.innerHTML = `
+                <a href="${firstItem.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
+                    <img src="${firstItem.url}" alt="إعلان">
                 </a>
             `;
-            renderProtectedVideo(targetId, item.url);
         }
-    } else if (ad.type === 'script') {
-        container.innerHTML = '';
-        try {
-            const range = document.createRange();
-            const frag = range.createContextualFragment(ad.script);
-            container.appendChild(frag);
-        } catch (e) {
-            console.error("Script Ad error:", e);
-            container.innerHTML = `<p style="color:red; font-size:10px;">خطأ في تحميل الكود البرمجي</p>`;
-        }
-    } else {
-        container.innerHTML = `
-            <a href="${ad.items[0].link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
-                <img src="${ad.items[0].url}" alt="إعلان">
-            </a>
-        `;
-    }
+    });
 }
 
 function trackAdClick(adId, itemIndex = 0) {
@@ -452,6 +460,8 @@ function loadStream(url, audioUrl = "", type = "hls") {
         const video = document.createElement('video');
         video.id = 'player';
         video.playsInline = true;
+        video.autoplay = true;
+        video.muted = true;
         video.controls = true;
         video.crossOrigin = 'anonymous';
         container.appendChild(video);
@@ -481,9 +491,11 @@ function getYouTubeId(url) {
 
 function getPlyrConfig() {
     return {
+        autoplay: true,
+        muted: true,
         controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
         i18n: { play: 'تشغيل', pause: 'إيقاف', mute: 'كتم', settings: 'إعدادات' },
-        youtube: { noCookie: true, rel: 0, modestbranding: 1, iv_load_policy: 3 }
+        youtube: { noCookie: true, rel: 0, modestbranding: 1, iv_load_policy: 3, autoplay: 1, mute: 1 }
     };
 }
 
