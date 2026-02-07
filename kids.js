@@ -201,6 +201,16 @@ function renderAd() {
             `;
             renderProtectedVideo(targetId, item.url);
         }
+    } else if (ad.type === 'script') {
+        container.innerHTML = '';
+        try {
+            const range = document.createRange();
+            const frag = range.createContextualFragment(ad.script);
+            container.appendChild(frag);
+        } catch (e) {
+            console.error("Script Ad error:", e);
+            container.innerHTML = `<p style="color:red; font-size:10px;">خطأ في تحميل الكود البرمجي</p>`;
+        }
     } else {
         container.innerHTML = `
             <a href="${ad.items[0].link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
