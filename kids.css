@@ -1,5 +1,9 @@
 /* Kids Section - Premium Dark Theme with Playful Accents */
 
+html {
+    direction: ltr !important;
+}
+
 :root {
     --kids-primary: #FF6B9D;
     --kids-secondary: #FFB84D;
@@ -9,6 +13,25 @@
     --kids-bg-black: #050505;
     --kids-glass: rgba(255, 255, 255, 0.03);
     --kids-glass-stroke: rgba(255, 255, 255, 0.08);
+}
+
+/* Custom Scrollbar for Kids */
+.kids-mode::-webkit-scrollbar {
+    width: 8px;
+}
+
+.kids-mode::-webkit-scrollbar-track {
+    background: var(--kids-bg-black);
+}
+
+.kids-mode::-webkit-scrollbar-thumb {
+    background: var(--kids-glass-stroke);
+    border-radius: 10px;
+    border: 2px solid var(--kids-bg-black);
+}
+
+.kids-mode::-webkit-scrollbar-thumb:hover {
+    background: var(--kids-primary);
 }
 
 .flag-icon {
@@ -21,6 +44,7 @@
 }
 
 .kids-mode .app-container {
+    direction: rtl;
     background-color: var(--kids-bg-black);
     background-image:
         radial-gradient(at 0% 0%, rgba(255, 107, 157, 0.15) 0, transparent 50%),
@@ -412,8 +436,8 @@ footer {
     body.kids-mode {
         display: block !important;
         height: auto !important;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
+        min-height: 100vh;
+        overflow: visible !important;
     }
 
     .kids-mode .app-container {
@@ -428,7 +452,6 @@ footer {
     .kids-mode header {
         position: sticky;
         top: 0;
-        background: rgba(5, 5, 5, 0.9);
         backdrop-filter: blur(15px);
         z-index: 1000;
         padding: 10px 0;
