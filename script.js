@@ -1014,9 +1014,11 @@ function showAdForm(adId = null) {
     const title = document.getElementById('ad-form-title');
     const editId = document.getElementById('ad-edit-id');
     const container = document.getElementById('ad-slider-items-container');
+    const scriptInput = document.getElementById('ad-script-input');
 
     form.style.display = 'block';
     container.innerHTML = '';
+    scriptInput.value = '';
 
     if (adId) {
         const ad = ADS.find(a => a.id === adId);
@@ -1025,16 +1027,18 @@ function showAdForm(adId = null) {
         title.textContent = "تعديل البطاقة الإعلانية";
         editId.value = ad.id;
         document.getElementById('ad-type-select').value = ad.type;
-        document.getElementById('ad-target-select').value = ad.target;
+        document.getElementById('ad-target-select').value = ad.target || 'all';
 
-        if (ad.type === 'slider' || ad.type === 'dual') {
+        if (ad.type === 'slider' || ad.type === 'dual' || ad.type === 'triple') {
             if (ad.type === 'slider') {
                 document.getElementById('ad-slider-interval').value = (ad.interval || 5000) / 1000;
             }
             ad.items.forEach(item => addAdSliderItem(item.url, item.link));
+        } else if (ad.type === 'script') {
+            scriptInput.value = ad.script || '';
         } else {
-            document.getElementById('ad-url-input').value = ad.items[0].url;
-            document.getElementById('ad-link-input').value = ad.items[0].link;
+            document.getElementById('ad-url-input').value = ad.items[0]?.url || '';
+            document.getElementById('ad-link-input').value = ad.items[0]?.link || '';
         }
     } else {
         title.textContent = "إضافة بطاقة إعلانية جديدة";
@@ -1056,12 +1060,17 @@ function toggleAdFormType() {
     const type = document.getElementById('ad-type-select').value;
     const single = document.getElementById('ad-single-content');
     const slider = document.getElementById('ad-slider-content');
+    const script = document.getElementById('ad-script-content');
     const urlLabel = document.getElementById('ad-url-label');
     const linkWrapper = document.getElementById('ad-link-wrapper');
     const container = document.getElementById('ad-slider-items-container');
 
+    // Reset displays
+    single.style.display = 'none';
+    slider.style.display = 'none';
+    script.style.display = 'none';
+
     if (type === 'slider' || type === 'dual' || type === 'triple') {
-        single.style.display = 'none';
         slider.style.display = 'block';
 
         if (type === 'dual' || type === 'triple') {
@@ -1078,9 +1087,10 @@ function toggleAdFormType() {
         } else {
             document.getElementById('ad-slider-interval').parentElement.style.display = 'block';
         }
+    } else if (type === 'script') {
+        script.style.display = 'block';
     } else {
         single.style.display = 'block';
-        slider.style.display = 'none';
         urlLabel.textContent = type === 'video' ? "رابط الفيديو المباشر" : "رابط الصورة";
         linkWrapper.style.display = "block"; // Always show link for redirect
     }
@@ -1120,6 +1130,7 @@ async function saveAdCard() {
 
     let items = [];
     let interval = 5000;
+    let scriptCode = "";
 
     if (type === 'slider' || type === 'dual' || type === 'triple') {
         if (type === 'slider') {
@@ -1131,6 +1142,9 @@ async function saveAdCard() {
             const link = row.querySelector('.slider-item-link').value;
             if (url) items.push({ url, link });
         });
+    } else if (type === 'script') {
+        scriptCode = document.getElementById('ad-script-input').value;
+        if (!scriptCode) return showToast('يرجى إضافة كود الإعلان');
     } else {
         items.push({
             url: document.getElementById('ad-url-input').value,
@@ -1138,13 +1152,14 @@ async function saveAdCard() {
         });
     }
 
-    if (items.length === 0 || !items[0].url) return showToast('يرجى إضافة محتوى');
+    if (type !== 'script' && (items.length === 0 || !items[0].url)) return showToast('يرجى إضافة محتوى');
 
     const adData = {
         type,
         target,
         active,
         items,
+        script: scriptCode,
         interval,
         clicks: 0,
         item_clicks: {},
@@ -1286,6 +1301,16 @@ function renderAd() {
                 </a>
             `;
             renderProtectedVideo(targetId, item.url);
+        }
+    } else if (ad.type === 'script') {
+        container.innerHTML = '';
+        try {
+            const range = document.createRange();
+            const frag = range.createContextualFragment(ad.script);
+            container.appendChild(frag);
+        } catch (e) {
+            console.error("Script Ad error:", e);
+            container.innerHTML = `<p style="color:red; font-size:10px;">خطأ في تحميل الكود البرمجي</p>`;
         }
     } else {
         container.innerHTML = `
