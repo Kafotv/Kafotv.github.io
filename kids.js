@@ -221,7 +221,7 @@ function renderAd() {
             const firstItem = ad.items?.[0] || { url: '', link: '#' };
             adWrapper.innerHTML = `
                 <a href="${firstItem.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
-                    <img src="${firstItem.url}" alt="إعلان">
+                    <img src="${firstItem.url}" alt="إعلان للأطفال">
                 </a>
             `;
         }
