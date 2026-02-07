@@ -1215,10 +1215,10 @@ function renderAdminAds() {
             ` : ''}
             <div style="width: 100%; height: 60px; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--glass-stroke); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); text-align: center; padding: 5px;">
                 ${ad.type === 'video' ?
-            `<img src="https://img.youtube.com/vi/${getYouTubeId(ad.items?.[0]?.url || '') || '0'}/mqdefault.jpg" style="width: 100%; height: 100%; object-fit: cover;">` :
+            `<img src="https://img.youtube.com/vi/${getYouTubeId(ad.items?.[0]?.url || '') || '0'}/mqdefault.jpg" alt="معاينة الفيديو" style="width: 100%; height: 100%; object-fit: cover;">` :
             ad.type === 'script' ?
                 `<div style="line-height:1.2; overflow:hidden; font-family: monospace; white-space: pre-wrap; word-break: break-all;">{ كود برمجي }<br>${(ad.script || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])).substring(0, 40)}...</div>` :
-                `<img src="${ad.items?.[0]?.url || ''}" style="width: 100%; height: 100%; object-fit: cover;">`
+                `<img src="${ad.items?.[0]?.url || ''}" alt="معاينة الإعلان" style="width: 100%; height: 100%; object-fit: cover;">`
         }
             </div>
             <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
@@ -1328,7 +1328,7 @@ function renderAd() {
             const firstItem = ad.items?.[0] || { url: '', link: '#' };
             adWrapper.innerHTML = `
                 <a href="${firstItem.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
-                    <img src="${firstItem.url}" alt="إعلان">
+                    <img src="${firstItem.url}" alt="إعلان ترويجي" alt="إعلان">
                 </a>
             `;
         }
