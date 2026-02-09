@@ -1,0 +1,11 @@
+#EXTM3U
+#EXT-X-VERSION:3
+
+#EXTINF:-1 tvg-logo="https://tv.alfajertv.com/assets/images/LogoWhite.png" group-title="مسلسل الحصاد", مسلسل الحصاد - الحلقة 1
+https://vstream7.hadara.ps:8443/vodAlfajerApp/tseries/Al-Hasad_S01/Al-Hasad_S01_Ep01.mp4/playlist.m3u8
+
+#EXTINF:-1 tvg-logo="https://tv.alfajertv.com/assets/images/LogoWhite.png" group-title="مسلسل الحصاد", مسلسل الحصاد - الحلقة 2
+https://vstream7.hadara.ps:8443/vodAlfajerApp/tseries/Al-Hasad_S01/Al-Hasad_S01_Ep02.mp4/playlist.m3u8
+
+#EXTINF:-1 tvg-logo="https://tv.alfajertv.com/assets/images/LogoWhite.png" group-title="مسلسل الحصاد", مسلسل الحصاد - الحلقة 3
+https://vstream7.hadara.ps:8443/vodAlfajerApp/tseries/Al-Hasad_S01/Al-Hasad_S01_Ep03.mp4/playlist.m3u8
