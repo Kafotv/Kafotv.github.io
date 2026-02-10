@@ -480,6 +480,19 @@ body.modal-open {
         border-radius: 50%;
         padding: 5px;
     }
+    server-switchers{
+
+        display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 10px 0;
+    width: 100%;
+    flex-wrap: wrap;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+}
+    }
 }
 
 .movies-mode .live-indicator-on-screen {
@@ -1066,4 +1079,5 @@ footer {
     margin: 0;
     color: rgba(255, 255, 255, 0.8);
     font-size: 13px;
+
 }
