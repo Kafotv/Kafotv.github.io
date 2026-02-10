@@ -33,14 +33,14 @@
     <meta property="og:url" content="https://kafotv.github.io/">
     <meta property="og:title" content="Kafomnak | المنصة الأولى للبث المباشر">
     <meta property="og:description" content="البث المباشر الأقوى للمباريات والقنوات التلفزيونية بجودة 4K.">
-    <meta property="og:image" content="assets/og-image.jpg">
+    <meta property="og:image" content="assets/og-image.svg">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://kafotv.github.io/">
     <meta property="twitter:title" content="Kafomnak | كفومنك">
     <meta property="twitter:description" content="شاهد قنواتك المفضلة أينما كنت. بث مستقر وسريع.">
-    <meta property="twitter:image" content="assets/twitter-image.jpg">
+    <meta property="twitter:image" content="assets/og-image.svg">
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -143,6 +143,16 @@
                         <line x1="15" y1="9" x2="15.01" y2="9" />
                     </svg>
                     <span>أطفالي</span>
+                </a>
+                <a href="movies.html" class="kids-trigger" style="border-color: #E50914; color: #E50914;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                    </svg>
+                    <span>أفلام</span>
                 </a>
                 <div class="login-trigger" onclick="toggleAdmin()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -318,6 +328,16 @@
                     </svg>
                     قنوات الأطفال
                 </button>
+                <button class="tab-btn" onclick="switchAdminTab('movies-tab')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                    </svg>
+                    الأفلام والمسلسلات
+                </button>
                 <button class="tab-btn" onclick="switchAdminTab('ad-management-tab')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -445,6 +465,87 @@
                             </tr>
                         </thead>
                         <tbody id="admin-kids-channel-list">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Movies Tab Content -->
+            <div id="movies-tab" class="tab-content" style="display: none;">
+                <div class="modal-header"
+                    style="display: flex; justify-content: space-between; align-items: center; text-align: right; margin-bottom: 30px;">
+                    <div>
+                        <h2 style="color: #E50914; margin-bottom: 5px;">إدارة الأفلام والمسلسلات</h2>
+                        <p style="font-size: 12px; color: var(--text-muted);">إضافة أفلام ومسلسلات جديدة</p>
+                    </div>
+                    <button class="btn-primary btn-sm" style="width: auto; padding: 10px 20px; background: #E50914;"
+                        onclick="showMoviesForm()">إضافة فيلم/مسلسل +</button>
+                </div>
+
+                <div id="movies-form"
+                    style="display: none; margin-bottom: 30px; padding: 25px; background: rgba(229, 9, 20, 0.05); border-radius: 16px; border: 1px solid rgba(229, 9, 20, 0.2);">
+                    <input type="hidden" id="movies-edit-id">
+
+                    <div class="input-group">
+                        <label>نوع المحتوى</label>
+                        <select id="movies-type" onchange="toggleMovieTypeLabels()"
+                            style="background: #111; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+                            <option value="movie">فيلم</option>
+                            <option value="series">مسلسل</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>اسم الفيلم / المسلسل</label>
+                        <input type="text" id="movies-name" placeholder="اسم الفيلم">
+                    </div>
+                    <div class="input-group">
+                        <label>صورة الغلاف (رابط الصورة)</label>
+                        <input type="text" id="movies-image" placeholder="https://example.com/poster.jpg">
+                    </div>
+                    <div class="input-group">
+                        <label>ملاحظة (سنة الإنتاج / ملاحظة قصيرة)</label>
+                        <input type="text" id="movies-note" placeholder="2024 - مترجم">
+                    </div>
+                    <div class="input-group">
+                        <label>تصنيف الفيلم (أكشن، دراما، إلخ...)</label>
+                        <input type="text" id="movies-genre" placeholder="مثال: أكشن، دراما">
+                    </div>
+                    <div class="input-group">
+                        <label>وصف (قصة العمل)</label>
+                        <textarea id="movies-desc" placeholder="اكتب نبذة عن القصة..."
+                            style="width: 100%; height: 80px; background: #111; border: 1px solid #333; color: #fff; border-radius: 8px; padding: 10px;"></textarea>
+                    </div>
+
+                    <div id="movies-server-inputs-container">
+                        <label id="movies-servers-label"
+                            style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 800;">السيرفرات
+                            والروابط</label>
+                        <!-- Row templates injected here -->
+                    </div>
+
+                    <button id="add-server-btn" class="btn-primary btn-outline btn-sm"
+                        style="margin-bottom: 20px; width: auto;" onclick="addMoviesServerInputRow()">+ إضافة سيرفر
+                        آخر</button>
+
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-primary" style="flex: 1; background: #E50914;" onclick="saveMovie()">حفظ
+                            المحتوى</button>
+                        <button class="btn-primary btn-outline" style="flex: 1;"
+                            onclick="hideMoviesForm()">إلغاء</button>
+                    </div>
+                </div>
+
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>السيرفرات</th>
+                                <th style="text-align: left;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-movies-list">
                         </tbody>
                     </table>
                 </div>
