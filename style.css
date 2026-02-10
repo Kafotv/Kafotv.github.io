@@ -1230,7 +1230,7 @@ footer {
 
     .player-container-modern {
         position: sticky;
-        top: 55px;
+        top: 0;
         /* Adjust based on header height */
         z-index: 900;
         border-radius: 16px;
@@ -1242,7 +1242,7 @@ footer {
 
     .server-switcher {
         display: grid !important;
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(1, 1fr) !important;
         gap: 8px !important;
         padding: 10px 5px;
         width: 100%;
