@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <style>
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .see-more-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-stroke);
+            padding: 8px 16px;
+            border-radius: 100px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .see-more-btn:hover {
+            text-decoration: underline;
+        }
+
+        .grid-view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="canonical" href="https://kafotv.github.io/movies.html" />
+    <title>أفلام ومسلسلات | كفومنك</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+    <!-- Meta Tags -->
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="شاهد أحدث الأفلام والمسلسلات العربية والأجنبية بجودة عالية على منصة كفومنك.">
+    <meta property="og:title" content="أفلام ومسلسلات كفومنك">
+    <meta property="og:description" content="سينما في منزلك. أحدث الأفلام والمسلسلات بجودة عالية.">
+    <meta property="og:type" content="video.movie">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Kufi+Arabic:wght@400;700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link rel="stylesheet" href="style.css"> <!-- Import main styles first -->
+    <link rel="stylesheet" href="movies.css"> <!-- Override with movies theme -->
+</head>
+
+<body class="movies-mode">
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                    <line x1="7" y1="2" x2="7" y2="22"></line>
+                    <line x1="17" y1="2" x2="17" y2="22"></line>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <line x1="2" y1="7" x2="7" y2="7"></line>
+                    <line x1="2" y1="17" x2="7" y2="17"></line>
+                    <line x1="17" y1="17" x2="22" y2="17"></line>
+                    <line x1="17" y1="7" x2="22" y2="7"></line>
+                </svg>
+                <h1 style="font-size: 1.2rem; margin: 0; display: inline;"><span>سينما</span> <span>كفومنك</span></h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="index.html" class="back-to-main">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                    <span>الرئيسية</span>
+                </a>
+            </div>
+        </header>
+
+        <main>
+            <div class="hub-label">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>المكتبة</span>
+            </div>
+
+            <div class="search-filter-wrapper">
+                <div class="movies-search-container">
+                    <input type="text" id="movies-search" placeholder="ابحث عن فيلم أو مسلسل..."
+                        onkeyup="filterMovies()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+
+                <div class="filter-container">
+                    <select id="type-filter" onchange="filterMovies()">
+                        <option value="all">الكل</option>
+                        <option value="movie">أفلام</option>
+                        <option value="series">مسلسلات</option>
+                    </select>
+                </div>
+
+                <div class="filter-container">
+                    <select id="genre-filter" onchange="filterMovies()">
+                        <option value="all">جميع التصنيفات</option>
+                        <!-- Other options will be dynamically added or I can hardcode common ones -->
+                        <option value="أكشن">أكشن</option>
+                        <option value="دراما">دراما</option>
+                        <option value="كوميديا">كوميديا</option>
+                        <option value="رعب">رعب</option>
+                        <option value="خيال علمي">خيال علمي</option>
+                        <option value="مغامرة">مغامرة</option>
+                        <option value="أنيميشن">أنيميشن</option>
+                        <option value="وثائقي">وثائقي</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Generic Grid View (Used for Search Results & See More) -->
+            <div id="grid-view-container" style="display: none;">
+                <div class="grid-view-header">
+                    <h3 class="section-title" id="grid-view-title">نتائج البحث</h3>
+                    <button class="back-btn" onclick="closeGridView()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        إغلاق
+                    </button>
+                </div>
+                <div class="movies-grid" id="grid-view-content"></div>
+            </div>
+
+            <!-- Main Content (Sliders) -->
+            <div id="main-browsing-container">
+                <!-- Hero Section: Latest Additions -->
+                <div class="category-section hero-section">
+                    <h3 class="section-title hero-title">أحدث الإضافات</h3>
+                    <div class="slider-wrapper hero-wrapper">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('hero-slider', -1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <div class="movies-slider hero-slider" id="hero-slider">
+                            <div class="slider-loading">جاري التحميل...</div>
+                        </div>
+                        <button class="slider-nav-btn next" onclick="moveSlider('hero-slider', 1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Latest Episodes Section -->
+                <div class="category-section">
+                    <h3 class="section-title">آخر الحلقات</h3>
+                    <div class="slider-wrapper">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('latest-episodes-slider', -1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <div class="movies-slider" id="latest-episodes-slider">
+                            <div class="slider-loading">جاري التحميل...</div>
+                        </div>
+                        <button class="slider-nav-btn next" onclick="moveSlider('latest-episodes-slider', 1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Series Section -->
+                <div class="category-section">
+                    <div class="section-header">
+                        <h3 class="section-title">المسلسلات</h3>
+                        <button class="see-more-btn" onclick="showCategory('series')">مشاهدة المزيد</button>
+                    </div>
+                    <div class="slider-wrapper">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('series-slider', -1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <div class="movies-slider" id="series-slider">
+                            <div class="slider-loading">جاري التحميل...</div>
+                        </div>
+                        <button class="slider-nav-btn next" onclick="moveSlider('series-slider', 1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Movies Section -->
+                <div class="category-section">
+                    <div class="section-header">
+                        <h3 class="section-title">أحدث الأفلام</h3>
+                        <button class="see-more-btn" onclick="showCategory('movie')">مشاهدة المزيد</button>
+                    </div>
+                    <div class="slider-wrapper">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('movies-slider', -1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <div class="movies-slider" id="movies-slider">
+                            <div class="slider-loading">جاري التحميل...</div>
+                        </div>
+                        <button class="slider-nav-btn next" onclick="moveSlider('movies-slider', 1)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p>© <span id="footer-year"></span> <span id="footer-site-name">كفومنك</span> | جميع الحقوق محفوظة
+                    <svg class="flag-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600">
+                        <rect width="1200" height="600" fill="#000" />
+                        <rect width="1200" height="400" y="200" fill="#fff" />
+                        <rect width="1200" height="200" y="400" fill="#007a3d" />
+                        <path d="M0 0 L600 300 L0 600 Z" fill="#e4312b" />
+                    </svg>
+                </p>
+                <p style="font-size: 11px; opacity: 0.7; margin: 5px 0 10px 0;">أفضل تجربة مشاهدة بجودة عالية</p>
+                <button class="support-btn" onclick="showSupportModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    بلغ عن مشكلة
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Movie Modal -->
+    <div class="movie-modal" id="movie-modal">
+        <div class="modal-content-wrapper">
+            <button class="close-modal-btn" onclick="closeMovieModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <div class="player-container-modern" id="player-container">
+                <div class="live-indicator-on-screen">جاري التحميل...</div>
+                <video id="player" playsinline controls></video>
+            </div>
+
+            <div class="modal-details">
+                <div style="flex: 1;">
+                    <h2 class="modal-title" id="modal-title">اسم الفيلم</h2>
+                    <div class="modal-meta" id="modal-desc">وصف الفيلم أو السنة</div>
+
+                    <div class="modal-movie-description">وصف الفيلم يظهر هنا...</div>
+
+                    <div class="server-switcher">
+                        <h3 class="modal-section-title">السيرفرات المتاحة</h3>
+                        <div class="servers-grid" id="servers-grid"></div>
+                    </div>
+
+                    <div id="channel-note-display" style="display:none"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Support Modal (Simplified) -->
+    <div id="support-modal" class="modal-overlay" onclick="closeModal(event, 'support-modal')">
+        <div class="modal-content"
+            style="max-width: 400px; text-align: center; background: #111; border: 1px solid #333;">
+            <h2 style="color: #fff; margin-bottom: 20px;">تواصل معنا</h2>
+            <p style="color: #aaa; margin-bottom: 20px;">راسلنا عبر واتساب للإبلاغ عن المشاكل</p>
+            <a href="https://wa.me/970599123456" class="btn-primary"
+                style="background: #25D366; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.5 8.38 8.38 0 0 1 3.8.9L21 3z"></path>
+                </svg>
+                فتح واتساب
+            </a>
+            <button class="btn-primary btn-outline"
+                style="margin-top: 15px; width: 100%; border-color: #333; color: #aaa;"
+                onclick="document.getElementById('support-modal').style.display='none'">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+
+    <script src="movies.js"></script>
+</body>
+
+</html>
