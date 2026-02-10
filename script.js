@@ -57,6 +57,7 @@ document.addEventListener('keydown', e => {
 // Global State
 let CHANNELS = [];
 let KIDS_CHANNELS = [];
+let MOVIES = [];
 let currentPlayer = null;
 let hlsInstance = null;
 let currentChannelId = null;
@@ -196,7 +197,31 @@ function subscribeToData() {
         }
     });
 
-    // 4. Advanced Ads
+    // 4. Movies
+    db.collection('movies').onSnapshot(snapshot => {
+        MOVIES = [];
+        snapshot.forEach(doc => MOVIES.push(doc.data()));
+
+        MOVIES.sort((a, b) => {
+            const orderA = a.order !== undefined ? a.order : a.id;
+            const orderB = b.order !== undefined ? b.order : b.id;
+            return orderA - orderB;
+        });
+
+        // Self-Correction for Movies
+        if (MOVIES.some(c => c.order === undefined) && MOVIES.length > 0) {
+            const batch = db.batch();
+            MOVIES.forEach((ch, index) => {
+                const ref = db.collection('movies').doc(String(ch.id));
+                batch.update(ref, { order: index });
+            });
+            batch.commit().catch(e => console.error("Movies Order Migration Error:", e));
+        }
+
+        if (auth.currentUser) renderAdminMovies();
+    });
+
+    // 5. Advanced Ads
     db.collection('ads').onSnapshot(snapshot => {
         ADS = [];
         snapshot.forEach(doc => ADS.push({ id: doc.id, ...doc.data() }));
@@ -739,6 +764,7 @@ function switchAdminTab(tabId) {
 
     if (tabId === 'kids-channels-tab') renderAdminKidsChannels();
     if (tabId === 'channels-tab') renderAdminChannels();
+    if (tabId === 'movies-tab') renderAdminMovies();
     if (tabId === 'ad-management-tab') renderAdminAds();
 }
 
@@ -1558,4 +1584,225 @@ function getYouTubeId(url) {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
+}
+
+// --- MOVIES ADMIN ---
+
+function renderAdminMovies() {
+    const list = document.getElementById('admin-movies-list');
+    if (!list) return;
+    list.innerHTML = MOVIES.map((mov) => `
+        <tr>
+            <td class="channel-name-cell">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="row-reorder-btns">
+                        <button class="reorder-btn"  onclick="moveMovies(${mov.id}, -1)">▲</button>
+                        <button class="reorder-btn"  onclick="moveMovies(${mov.id}, 1)">▼</button>
+                    </div>
+                    ${mov.image ? `<img src="${mov.image}" style="width: 30px; height: 45px; object-fit: cover; border-radius: 4px;">` : ''}
+                    <div>
+                        <div style="font-weight: bold;">
+                            <span style="display:inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; background: ${mov.type === 'series' ? '#E50914' : '#333'}; margin-left: 5px;">
+                                ${mov.type === 'series' ? 'مسلسل' : 'فيلم'}
+                            </span>
+                            ${mov.name}
+                        </div>
+                        <div style="font-size: 10px; color: var(--text-muted);">${mov.note || ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td><span class="server-count-badge">${mov.servers ? mov.servers.length : 0} ${mov.type === 'series' ? 'حلقات' : 'سيرفرات'}</span></td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn-primary btn-sm btn-edit" onclick="editMovie(${mov.id})">تعديل</button>
+                    <button class="btn-primary btn-sm btn-danger" onclick="deleteMovie(${mov.id})">حذف</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function moveMovies(id, direction) {
+    if (!auth.currentUser) return;
+    const index = MOVIES.findIndex(c => c.id == id);
+    if (index === -1) return;
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= MOVIES.length) return;
+
+    const items = [...MOVIES];
+    const [movedItem] = items.splice(index, 1);
+    items.splice(newIndex, 0, movedItem);
+
+    showToast('جاري الترتيب...');
+    try {
+        const batch = db.batch();
+        items.forEach((ch, idx) => {
+            const ref = db.collection('movies').doc(String(ch.id));
+            batch.update(ref, { order: idx });
+        });
+        await batch.commit();
+        showToast('تم الترتيب بنجاح');
+    } catch (e) {
+        showToast('خطأ في الترتيب');
+    }
+}
+
+function addMoviesServerInputRow(name = "", url = "", audioUrl = "", type = "hls") {
+    const container = document.getElementById('movies-server-inputs-container');
+    const row = document.createElement('div');
+    row.className = 'server-row-v2';
+    row.setAttribute('data-server-type', type);
+    row.innerHTML = `
+        <div class="server-row-header">
+            <span class="server-drag-handle">☰</span>
+            <select class="srv-type" onchange="toggleAudioField(this)">
+                <option value="hls" ${type === 'hls' ? 'selected' : ''}>بث مباشر (HLS)</option>
+                <option value="iframe" ${type === 'iframe' ? 'selected' : ''}>تضمين (Iframe)</option>
+            </select>
+            <button class="remove-srv-btn" onclick="this.closest('.server-row-v2').remove()">✕</button>
+        </div>
+        <div class="server-row-body">
+            <div class="field-group">
+                <label>اسم السيرفر</label>
+                <input type="text" placeholder="مثال: الرئيسية" value="${name}" class="srv-name" required>
+            </div>
+            <div class="field-group" style="flex: 2;">
+                <label>رابط الفيديو</label>
+                <input type="text" placeholder="رابط m3u8 أو رابط التضمين" value="${url}" class="srv-url" required>
+            </div>
+            <div class="field-group hls-only-field" style="flex: 2;">
+                <label>رابط الصوت (اختياري)</label>
+                <input type="text" placeholder="رابط m3u8 الخاص بالصوت" value="${audioUrl}" class="srv-audio-url">
+            </div>
+        </div>
+    `;
+    container.appendChild(row);
+}
+
+function toggleMovieTypeLabels() {
+    const type = document.getElementById('movies-type').value;
+    const label = document.getElementById('movies-servers-label');
+    const btn = document.getElementById('add-server-btn');
+
+    if (label) {
+        if (type === 'series') {
+            label.textContent = 'الحلقات وروابطها';
+        } else {
+            label.textContent = 'السيرفرات والروابط';
+        }
+    }
+
+    if (btn) {
+        if (type === 'series') {
+            btn.textContent = '+ إضافة حلقة أخرى';
+        } else {
+            btn.textContent = '+ إضافة سيرفر آخر';
+        }
+    }
+}
+
+function showMoviesForm() {
+    document.getElementById('movies-form').style.display = 'block';
+    document.getElementById('movies-edit-id').value = '';
+    document.getElementById('movies-type').value = 'movie'; // Default
+    toggleMovieTypeLabels();
+    document.getElementById('movies-name').value = '';
+    document.getElementById('movies-image').value = '';
+    document.getElementById('movies-note').value = '';
+    document.getElementById('movies-genre').value = '';
+    document.getElementById('movies-desc').value = '';
+    document.getElementById('movies-server-inputs-container').innerHTML = '';
+    addMoviesServerInputRow();
+}
+
+function hideMoviesForm() {
+    document.getElementById('movies-form').style.display = 'none';
+}
+
+function saveMovie() {
+    if (!auth.currentUser) return;
+    const id = document.getElementById('movies-edit-id').value || Date.now();
+    const type = document.getElementById('movies-type').value;
+    const name = document.getElementById('movies-name').value;
+    const image = document.getElementById('movies-image').value;
+    const note = document.getElementById('movies-note').value;
+    const genre = document.getElementById('movies-genre').value;
+    const description = document.getElementById('movies-desc').value;
+    const serverRows = document.querySelectorAll('#movies-server-inputs-container .server-row-v2');
+    const servers = [];
+    serverRows.forEach(row => {
+        const sName = row.querySelector('.srv-name').value;
+        const sUrl = row.querySelector('.srv-url').value;
+        const sAudioUrl = row.querySelector('.srv-audio-url').value;
+        const sType = row.querySelector('.srv-type').value;
+
+        let finalUrl = sUrl;
+        if (sType === 'iframe' && sUrl && !sUrl.startsWith('http')) {
+            finalUrl = sUrl;
+        } else if (sType === 'iframe' && sUrl) {
+            finalUrl = obfuscate(sUrl);
+        }
+
+        if (sName && sUrl) servers.push({ name: sName, url: finalUrl, audioUrl: sAudioUrl, type: sType });
+    });
+
+    if (!name || servers.length === 0) return alert('يرجى ملء البيانات');
+
+    let order = Number(id);
+    if (document.getElementById('movies-edit-id').value) {
+        const existing = MOVIES.find(c => c.id == id);
+        if (existing && existing.order !== undefined) order = existing.order;
+    }
+
+    const data = {
+        id: Number(id),
+        type,
+        name,
+        image,
+        servers,
+        order,
+        note,
+        genre,
+        description,
+        updatedAt: Date.now()
+    };
+    db.collection('movies').doc(String(id)).set(data, { merge: true })
+        .then(() => { showToast('تم الحفظ بنجاح'); hideMoviesForm(); })
+        .catch(e => {
+            console.error("Movies Save Error:", e);
+            showToast('خطأ في الحفظ: ' + translateError(e));
+        });
+}
+
+function editMovie(id) {
+    const mov = MOVIES.find(c => c.id == id);
+    if (!mov) return;
+    document.getElementById('movies-edit-id').value = mov.id;
+    document.getElementById('movies-type').value = mov.type || 'movie';
+    toggleMovieTypeLabels();
+    document.getElementById('movies-name').value = mov.name;
+    document.getElementById('movies-image').value = mov.image || '';
+    document.getElementById('movies-note').value = mov.note || '';
+    document.getElementById('movies-genre').value = mov.genre || '';
+    document.getElementById('movies-desc').value = mov.description || '';
+    const container = document.getElementById('movies-server-inputs-container');
+    container.innerHTML = '';
+    if (mov.servers) {
+        mov.servers.forEach(s => {
+            const realUrl = s.type === 'iframe' ? deobfuscate(s.url) : s.url;
+            addMoviesServerInputRow(s.name, realUrl, s.audioUrl || "", s.type || "hls");
+        });
+    } else {
+        addMoviesServerInputRow();
+    }
+    document.getElementById('movies-form').style.display = 'block';
+}
+
+async function deleteMovie(id) {
+    if (!auth.currentUser) return;
+    showToast('جاري التحقق من الحذف...');
+    const confirmed = await showConfirmModal('هل أنت متأكد من حذف هذا الفيلم/المسلسل؟');
+    if (confirmed) {
+        db.collection('movies').doc(String(id)).delete();
+    }
 }
