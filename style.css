@@ -477,6 +477,17 @@ header {
         gap: 1px;
         font-size: 6px;
     }
+    .server-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 10px 0;
+    flex-wrap: wrap;
+        crollbar-width: thin;
+        background: rgba(255, 255, 255, 0.02);
+}
+    
 }
 
 /* In-Player Branding */
@@ -1617,3 +1628,4 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
