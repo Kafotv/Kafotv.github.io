@@ -685,6 +685,7 @@ function initPlayer(url, audioUrl, type, category = 'movie') {
         video.id = 'player';
         video.playsInline = true;
         video.autoplay = true;
+        video.muted = false; // Enable audio by default
         video.controls = true;
         video.crossOrigin = 'anonymous'; // Important for Blob/CORS
         container.appendChild(video);
@@ -827,6 +828,7 @@ function getYouTubeId(url) {
 function getPlyrConfig() {
     return {
         autoplay: true,
+        muted: false, // Enable audio by default
         controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'settings', 'fullscreen'],
         settings: ['quality', 'speed'],
         i18n: {
