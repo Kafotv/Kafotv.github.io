@@ -49,19 +49,6 @@
             font-size: 0.9rem;
             transition: background 0.2s;
         }
-        @media (max-width: 600px){
-        .server-switchers {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-shrink: 0;
-    padding: 10px 0;
-    width: 100%;
-    flex-wrap: wrap;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 12px;
-         }
-        }
 
         .back-btn:hover {
             background: rgba(255, 255, 255, 0.2);
@@ -71,7 +58,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="https://kafotv.github.io/movies.html" />
     <title>أفلام ومسلسلات | كفومنك</title>
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon-movies.svg">
 
     <!-- Meta Tags -->
     <meta name="robots" content="index, follow">
@@ -79,6 +66,7 @@
     <meta property="og:title" content="أفلام ومسلسلات كفومنك">
     <meta property="og:description" content="سينما في منزلك. أحدث الأفلام والمسلسلات بجودة عالية.">
     <meta property="og:type" content="video.movie">
+    <meta name="keywords" content="أفلام, مسلسلات, كفومنك, سينما, بث مباشر, مسلسلات رمضان, أفلام جديدة, شاهد اون لاين">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -91,6 +79,34 @@
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <link rel="stylesheet" href="style.css"> <!-- Import main styles first -->
     <link rel="stylesheet" href="movies.css"> <!-- Override with movies theme -->
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "قسم الأفلام والمسلسلات | كفومنك",
+        "description": "مكتبة ضخمة من الأفلام والمسلسلات العربية والأجنبية بجودة عالية.",
+        "url": "https://kafotv.github.io/movies.html",
+        "publisher": {
+          "@type": "Organization",
+          "name": "كفومنك",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://kafotv.github.io/assets/favicon.svg"
+          }
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "أحدث الأفلام والمسلسلات",
+        "description": "قائمة بأحدث الأفلام والمسلسلات المتوفرة على منصة كفومنك",
+        "itemListElement": []
+      }
+    ]
+    </script>
 </head>
 
 <body class="movies-mode">
@@ -166,6 +182,9 @@
                 </div>
             </div>
 
+            <!-- Ad Container -->
+            <div id="ad-container" class="ad-container"></div>
+
             <!-- Generic Grid View (Used for Search Results & See More) -->
             <div id="grid-view-container" style="display: none;">
                 <div class="grid-view-header">
@@ -180,15 +199,17 @@
                     </button>
                 </div>
                 <div class="movies-grid" id="grid-view-content"></div>
+                <!-- Pagination Container -->
+                <div id="frontend-pagination" class="pagination-container"></div>
             </div>
 
             <!-- Main Content (Sliders) -->
             <div id="main-browsing-container">
                 <!-- Hero Section: Latest Additions -->
                 <div class="category-section hero-section">
-                    <h3 class="section-title hero-title">أحدث الإضافات</h3>
+                    <h3 class="section-title hero-title">المميز الاكثر مشاهدة</h3>
                     <div class="slider-wrapper hero-wrapper">
-                        <button class="slider-nav-btn prev" onclick="moveSlider('hero-slider', -1)">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('hero-slider', 1)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"></polyline>
@@ -197,7 +218,7 @@
                         <div class="movies-slider hero-slider" id="hero-slider">
                             <div class="slider-loading">جاري التحميل...</div>
                         </div>
-                        <button class="slider-nav-btn next" onclick="moveSlider('hero-slider', 1)">
+                        <button class="slider-nav-btn next" onclick="moveSlider('hero-slider', -1)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -205,20 +226,26 @@
                         </button>
                     </div>
                 </div>
-                <!-- Latest Episodes Section -->
-                <div class="category-section">
-                    <h3 class="section-title">آخر الحلقات</h3>
-                    <div class="slider-wrapper">
-                        <button class="slider-nav-btn prev" onclick="moveSlider('latest-episodes-slider', -1)">
+                <!-- Ramadan Section (Special) -->
+                <div class="category-section ramadan-section" id="ramadan-section" style="display: none;">
+                    <div class="section-header">
+                        <h3 class="section-title ramadan-title">
+                            <span class="ramadan-icon">🌙</span>
+                            رمضان يجمعنا
+                        </h3>
+                        <button class="see-more-btn" onclick="showCategory('ramadan')">مشاهدة المزيد</button>
+                    </div>
+                    <div class="slider-wrapper ramadan-wrapper">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('ramadan-slider', 1)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"></polyline>
                             </svg>
                         </button>
-                        <div class="movies-slider" id="latest-episodes-slider">
+                        <div class="movies-slider ramadan-slider" id="ramadan-slider">
                             <div class="slider-loading">جاري التحميل...</div>
                         </div>
-                        <button class="slider-nav-btn next" onclick="moveSlider('latest-episodes-slider', 1)">
+                        <button class="slider-nav-btn next" onclick="moveSlider('ramadan-slider', -1)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -227,6 +254,8 @@
                     </div>
                 </div>
 
+
+
                 <!-- Series Section -->
                 <div class="category-section">
                     <div class="section-header">
@@ -234,7 +263,7 @@
                         <button class="see-more-btn" onclick="showCategory('series')">مشاهدة المزيد</button>
                     </div>
                     <div class="slider-wrapper">
-                        <button class="slider-nav-btn prev" onclick="moveSlider('series-slider', -1)">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('series-slider', 1)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"></polyline>
@@ -243,7 +272,7 @@
                         <div class="movies-slider" id="series-slider">
                             <div class="slider-loading">جاري التحميل...</div>
                         </div>
-                        <button class="slider-nav-btn next" onclick="moveSlider('series-slider', 1)">
+                        <button class="slider-nav-btn next" onclick="moveSlider('series-slider', -1)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -259,7 +288,7 @@
                         <button class="see-more-btn" onclick="showCategory('movie')">مشاهدة المزيد</button>
                     </div>
                     <div class="slider-wrapper">
-                        <button class="slider-nav-btn prev" onclick="moveSlider('movies-slider', -1)">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('movies-slider', 1)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"></polyline>
@@ -268,7 +297,7 @@
                         <div class="movies-slider" id="movies-slider">
                             <div class="slider-loading">جاري التحميل...</div>
                         </div>
-                        <button class="slider-nav-btn next" onclick="moveSlider('movies-slider', 1)">
+                        <button class="slider-nav-btn next" onclick="moveSlider('movies-slider', -1)">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -317,19 +346,21 @@
                 <video id="player" playsinline controls></video>
             </div>
 
+            <div id="channel-note-display"
+                style="display:none; padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(255,193,7,0.03);">
+            </div>
+
             <div class="modal-details">
-                <div style="flex: 1;">
+                <div style="flex: 1; padding: 20px;">
                     <h2 class="modal-title" id="modal-title">اسم الفيلم</h2>
                     <div class="modal-meta" id="modal-desc">وصف الفيلم أو السنة</div>
 
                     <div class="modal-movie-description">وصف الفيلم يظهر هنا...</div>
 
-                    <div class="server-switchers">
+                    <div class="movies-server-selection">
                         <h3 class="modal-section-title">السيرفرات المتاحة</h3>
                         <div class="servers-grid" id="servers-grid"></div>
                     </div>
-
-                    <div id="channel-note-display" style="display:none"></div>
                 </div>
             </div>
         </div>
@@ -362,6 +393,4 @@
     <script src="movies.js"></script>
 </body>
 
-
 </html>
-
