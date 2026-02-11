@@ -1,1912 +1,885 @@
-// Kafomnak - Firebase Connected
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAS7Dai5B31cyeC4UNNE8H_o_3GoFuZOf4",
-    authDomain: "shwo90s.firebaseapp.com",
-    projectId: "shwo90s",
-    storageBucket: "shwo90s.firebasestorage.app",
-    messagingSenderId: "231335069201",
-    appId: "1:231335069201:web:1b935ca1151547189c13b0",
-    measurementId: "G-CJF8M3TJEG"
-};
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
 
-// Initialize Firebase
-let app, db, auth;
-try {
-    app = firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    auth = firebase.auth();
-    console.log("Firebase initialized");
-} catch (e) {
-    console.error("Firebase init error:", e);
-}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="canonical" href="https://kafotv.github.io/" />
+    <meta name="indexnow-key" content="4ffa22697a14486f96cbe887dda5ebbe" />
+    <title>Kafomnak | كفومنك - المنصة الاحترافية للبث المباشر</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="shortcut icon" href="assets/favicon.svg" type="image/x-icon">
+    <link rel="apple-touch-icon" href="assets/favicon.svg">
 
-// Security Helpers
-const obfuscate = (str) => btoa(unescape(encodeURIComponent(str)));
-const deobfuscate = (str) => {
-    try { return decodeURIComponent(escape(atob(str))); }
-    catch (e) { return str; } // Fallback for old plain-text links
-};
+    <!-- SEO Meta Tags -->
+    <meta name="google-site-verification" content="6oyjGE5f4-diJ4Xfez247Wp5tb0Mc0LO2GM8hWY7mqg" />
+    <meta name="yandex-verification" content="13a87815e3450d44" />
+    <meta name="description"
+        content="شاهد أفضل القنوات العربية والعالمية بث مباشر بجودة عالية. مباريات، أخبار، مسلسلات وأفلام على كفومنك.">
+    <meta name="keywords"
+        content="كفومنك, Kafomnak, بث مباشر, قنوات عربية, قنوات رياضية, مباريات اليوم, كورة لايف, مسلسلات, أخبار, بث حي">
+    <meta name="author" content="Kafomnak Team">
+    <meta name="robots" content="index, follow">
 
-// Helper to translate Firebase errors to Arabic
-function translateError(error) {
-    if (!error || !error.code) return error.message || 'حدث خطأ غير متوقع';
+    <!-- Regional Meta Tags (Yandex & Geo) -->
+    <meta name="geo.region" content="PS" />
+    <meta name="geo.placename" content="Palestine" />
+    <meta name="geo.position" content="31.9466;35.2038" />
+    <meta name="ICBM" content="31.9466, 35.2038" />
+    <meta http-equiv="content-language" content="ar" />
 
-    const code = error.code;
-    const translations = {
-        'auth/invalid-email': 'عنوان البريد الإلكتروني غير صحيح.',
-        'auth/user-disabled': 'تم تعطيل هذا المستخدم.',
-        'auth/user-not-found': 'لم يتم العثور على هذا المستخدم.',
-        'auth/wrong-password': 'كلمة المرور غير صحيحة.',
-        'auth/email-already-in-use': 'البريد الإلكتروني مستخدم بالفعل.',
-        'auth/operation-not-allowed': 'العملية غير مسموح بها.',
-        'auth/weak-password': 'كلمة المرور ضعيفة جداً.',
-        'auth/network-request-failed': 'خطأ في الاتصال بالشبكة.',
-        'auth/too-many-requests': 'محاولات كثيرة جداً. يرجى المحاولة لاحقاً.'
-    };
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kafotv.github.io/">
+    <meta property="og:title" content="Kafomnak | المنصة الأولى للبث المباشر">
+    <meta property="og:description" content="البث المباشر الأقوى للمباريات والقنوات التلفزيونية بجودة 4K.">
+    <meta property="og:image" content="assets/og-image.svg">
 
-    return translations[code] || error.message.replace('Firebase: ', '');
-}
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://kafotv.github.io/">
+    <meta property="twitter:title" content="Kafomnak | كفومنك">
+    <meta property="twitter:description" content="شاهد قنواتك المفضلة أينما كنت. بث مستقر وسريع.">
+    <meta property="twitter:image" content="assets/og-image.svg">
 
-// DevTools Protection
-document.addEventListener('keydown', e => {
-    if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i' || e.key === 'j')) e.preventDefault();
-    if (e.key === 'F12') e.preventDefault();
-});
-
-// Global State
-let CHANNELS = [];
-let KIDS_CHANNELS = [];
-let MOVIES = [];
-let currentPlayer = null;
-let hlsInstance = null;
-let currentChannelId = null;
-let currentServerIndex = 0;
-let ADS = [];
-let adSliderIntervals = {};
-
-// 1. Initialization
-document.addEventListener('DOMContentLoaded', () => {
-    initPlatform();
-});
-
-function initPlatform() {
-    subscribeToData(); // Start Real-time Listeners
-    setupSmartTV();
-    initStats();
-
-    // Auth Listener
-    auth.onAuthStateChanged(user => {
-        updateAuthUI(user);
-        if (user) {
-            subscribeToStats();
-        } else {
-            document.getElementById('admin-panel').style.display = 'none';
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Kafomnak",
+        "alternateName": ["كفومنك", "Kafomnak"],
+        "url": "https://kafotv.github.io/",
+        "description": "منصة بث مباشر للقنوات الفضائية والمباريات.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://kafotv.github.io/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
         }
-    });
-
-    // Auto-hide alert
-    const alertBox = document.querySelector('.info-alert');
-    if (alertBox) {
-        setTimeout(() => {
-            alertBox.style.transition = 'opacity 1s ease, transform 1s ease';
-            alertBox.style.opacity = '0';
-            alertBox.style.transform = 'translateY(-10px)';
-            setTimeout(() => {
-                alertBox.style.display = 'none';
-                alertBox.remove();
-            }, 1000);
-        }, 8000);
-    }
-}
-
-function updateAuthUI(user) {
-    const trigger = document.querySelector('.login-trigger');
-    if (trigger) {
-        if (user) trigger.style.color = 'var(--accent-neon)';
-        else trigger.style.color = '';
-    }
-}
-
-// --- FIREBASE DATA SUBSCRIPTIONS ---
-
-function subscribeToData() {
-    // 1. Main Channels
-    db.collection('channels').onSnapshot(snapshot => {
-        if (snapshot.empty && localStorage.getItem('90show_channels')) {
-            const local = JSON.parse(localStorage.getItem('90show_channels'));
-            local.forEach(ch => {
-                const data = { ...ch, order: ch.id };
-                if (data.url && !data.servers) data.servers = [{ name: "تلقائي", url: data.url }];
-                db.collection('channels').doc(String(ch.id)).set(data);
-            });
-            return;
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        "name": "Kafomnak Live Stream",
+        "description": "بث مباشر للقنوات الفضائية والمباريات بجودة عالية.",
+        "thumbnailUrl": [
+          "https://kafotv.github.io/assets/og-image.jpg"
+        ],
+        "uploadDate": "2026-01-01T00:00:00+00:00",
+        "embedUrl": "https://kafotv.github.io/",
+        "publication": {
+          "@type": "BroadcastEvent",
+          "isLiveBroadcast": true,
+          "startDate": "2026-01-01T00:00:00+00:00"
         }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Kafomnak",
+        "url": "https://kafotv.github.io/",
+        "logo": "https://kafotv.github.io/assets/favicon.svg",
+        "sameAs": [
+          "https://facebook.com/kafomnak",
+          "https://instagram.com/kafomnak"
+        ]
+      }
+    ]
+    </script>
 
-        CHANNELS = [];
-        snapshot.forEach(doc => CHANNELS.push(doc.data()));
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020202">
 
-        // Sort by 'order' field, fallback to 'id'
-        CHANNELS.sort((a, b) => {
-            const orderA = a.order !== undefined ? a.order : a.id;
-            const orderB = b.order !== undefined ? b.order : b.id;
-            return orderA - orderB;
-        });
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CJF8M3TJEG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-        // Self-Correction: Ensure all documents have an 'order' field
-        if (CHANNELS.some(c => c.order === undefined) && CHANNELS.length > 0) {
-            const batch = db.batch();
-            CHANNELS.forEach((ch, index) => {
-                const ref = db.collection('channels').doc(String(ch.id));
-                batch.update(ref, { order: index });
-            });
-            batch.commit().catch(e => console.error("Order Migration Error:", e));
-        }
+        gtag('config', 'G-CJF8M3TJEG');
+    </script>
 
-        renderChannels();
-        if (auth.currentUser) renderAdminChannels();
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Kufi+Arabic:wght@400;700;900&display=swap"
+        rel="stylesheet">
 
-        if (!currentChannelId && CHANNELS.length > 0) {
-            changeChannel(CHANNELS[0].id);
-        } else if (currentChannelId) {
-            const exists = CHANNELS.find(c => c.id === currentChannelId);
-            if (!exists && CHANNELS.length > 0) changeChannel(CHANNELS[0].id);
-        }
-    }, err => console.error("Channels Sync Error:", err));
 
-    // 2. Kids Channels
-    db.collection('kids_channels').onSnapshot(snapshot => {
-        if (snapshot.empty && localStorage.getItem('90show_kids_channels')) {
-            const local = JSON.parse(localStorage.getItem('90show_kids_channels'));
-            local.forEach(ch => {
-                const data = { ...ch, order: ch.id };
-                db.collection('kids_channels').doc(String(ch.id)).set(data);
-            });
-            return;
-        }
 
-        KIDS_CHANNELS = [];
-        snapshot.forEach(doc => KIDS_CHANNELS.push(doc.data()));
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
 
-        KIDS_CHANNELS.sort((a, b) => {
-            const orderA = a.order !== undefined ? a.order : a.id;
-            const orderB = b.order !== undefined ? b.order : b.id;
-            return orderA - orderB;
-        });
+<body>
 
-        // Self-Correction for Kids
-        if (KIDS_CHANNELS.some(c => c.order === undefined) && KIDS_CHANNELS.length > 0) {
-            const batch = db.batch();
-            KIDS_CHANNELS.forEach((ch, index) => {
-                const ref = db.collection('kids_channels').doc(String(ch.id));
-                batch.update(ref, { order: index });
-            });
-            batch.commit().catch(e => console.error("Kids Order Migration Error:", e));
-        }
-
-        if (auth.currentUser) renderAdminKidsChannels();
-    });
-
-    // 3. Platform Settings
-    db.collection('settings').doc('platform').onSnapshot(doc => {
-        if (doc.exists) {
-            applyPlatformSettings(doc.data());
-        } else if (localStorage.getItem('90show_platform_settings')) {
-            const local = JSON.parse(localStorage.getItem('90show_platform_settings'));
-            db.collection('settings').doc('platform').set(local);
-        }
-    });
-
-    // 4. Movies
-    db.collection('movies').onSnapshot(snapshot => {
-        MOVIES = [];
-        snapshot.forEach(doc => MOVIES.push(doc.data()));
-
-        MOVIES.sort((a, b) => {
-            const orderA = a.order !== undefined ? a.order : a.id;
-            const orderB = b.order !== undefined ? b.order : b.id;
-            return orderA - orderB;
-        });
-
-        // Self-Correction for Movies
-        if (MOVIES.some(c => c.order === undefined) && MOVIES.length > 0) {
-            const batch = db.batch();
-            MOVIES.forEach((ch, index) => {
-                const ref = db.collection('movies').doc(String(ch.id));
-                batch.update(ref, { order: index });
-            });
-            batch.commit().catch(e => console.error("Movies Order Migration Error:", e));
-        }
-
-        if (auth.currentUser) renderAdminMovies();
-    });
-
-    // 5. Advanced Ads
-    db.collection('ads').onSnapshot(snapshot => {
-        ADS = [];
-        snapshot.forEach(doc => ADS.push({ id: doc.id, ...doc.data() }));
-        renderAdminAds();
-        renderAd(); // Update view
-    });
-}
-
-// 2. Render Channel List
-function renderChannels() {
-    const container = document.getElementById('channel-list');
-    if (!container) return;
-    container.innerHTML = CHANNELS.map(ch => `
-        <button class="channel-btn ${ch.id === currentChannelId ? 'active' : ''}" 
-                onclick="changeChannel(${ch.id}, this)">
-            <span class="badge">LIVE</span>
-            ${ch.name}
-        </button>
-    `).join('');
-}
-
-// 3. Render Server Switcher
-function renderServers(channel) {
-    const container = document.getElementById('server-switcher');
-    const noteContainer = document.getElementById('channel-note-display');
-    if (!channel || !channel.servers || channel.servers.length <= 1) {
-        if (container) container.innerHTML = "";
-        if (noteContainer) noteContainer.innerHTML = "";
-        return;
-    }
-
-    container.innerHTML = channel.servers.map((srv, index) => `
-        <button class="server-btn ${index === currentServerIndex ? 'active' : ''}" 
-                onclick="switchServer(${index})">
-            ${srv.name}
-        </button>
-    `).join('');
-
-    if (noteContainer) {
-        noteContainer.innerHTML = channel.note ? `
-            <div class="channel-note-wrapper">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round" aria-label="شعار كفومنك" role="img"
+                    style="filter: drop-shadow(0 0 8px var(--accent-glow)); margin-left: 5px;">
+                    <path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-16a2 2 0 0 1-2-2v-2"></path>
+                    <path d="M2 12h10"></path>
+                    <path d="m9 15 3-3-3-3"></path>
                 </svg>
-                <span>${channel.note}</span>
+                <h1 id="site-branding" style="font-size: 1.2rem; margin: 0; display: inline;">كفومنك</h1>
             </div>
-        ` : '';
-    }
-}
+            <div style="display: flex; align-items: center; gap: 15px;">
 
-// 4. Switching Logic
-function changeChannel(id, btn) {
-    currentChannelId = id;
-    currentServerIndex = 0;
+                <a href="kids.html" class="kids-trigger">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" />
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                        <line x1="9" y1="9" x2="9.01" y2="9" />
+                        <line x1="15" y1="9" x2="15.01" y2="9" />
+                    </svg>
+                    <span>أطفالي</span>
+                </a>
+                <a href="movies.html" class="kids-trigger" style="border-color: #E50914; color: #E50914;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                    </svg>
+                    <span>أفلام</span>
+                </a>
+                <div class="login-trigger" onclick="toggleAdmin()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+            </div>
+        </header>
 
-    document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    else {
-        const target = Array.from(document.querySelectorAll('.channel-btn')).find(b => b.getAttribute('onclick').includes(id));
-        if (target) target.classList.add('active');
-    }
+        <main>
+            <div class="hub-wrapper">
+                <div class="hub-label">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+                        <polyline points="17 2 12 7 7 2"></polyline>
+                    </svg>
+                    <span>القنوات</span>
+                </div>
+                <nav class="channels-hub" id="channel-list">
+                    <!-- Channels injected here -->
+                    <noscript>
+                        <p style="color: #ccc; padding: 20px; text-align: center;">
+                            منصة كفومنك للبث المباشر تقدم أفضل القنوات العربية والعالمية بجودة عالية.
+                            شاهد القنوات الرياضية، الأخبار، والترفيه في مكان واحد.
+                            يرجى تفعيل JavaScript لتجربة كاملة.
+                        </p>
+                    </noscript>
+                </nav>
+            </div>
 
-    const channel = CHANNELS.find(c => c.id === id);
-    if (channel) {
-        renderServers(channel);
-        loadStream(channel.servers[0].url, channel.servers[0].audioUrl, channel.servers[0].type || "hls");
+            <div class="player-container-modern" id="player-container">
+                <div class="live-indicator-on-screen">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-left: 5px; opacity: 0.9;">
+                        <path d="M5 12h14"></path>
+                        <path d="M12 5v14"></path>
+                    </svg>
+                    <div class="live-dot"></div>
+                    بث مباشر (Ultra HD)
+                </div>
 
-        // Update live indicator with first server name
-        const indicator = document.querySelector('.live-indicator-on-screen');
-        if (indicator && channel.servers[0]) {
-            const serverName = channel.servers[0].name || 'سيرفر 1';
-            indicator.innerHTML = `
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 5px; opacity: 0.9;">
-                    <path d="M5 12h14"></path>
-                    <path d="M12 5v14"></path>
+                <video id="player" playsinline controls crossorigin></video>
+            </div>
+
+            <div id="server-switcher" class="server-switcher">
+                <!-- Quality buttons injected here -->
+            </div>
+            <div id="channel-note-display"></div>
+            <div id="ad-container" class="ad-container"></div>
+
+            <div class="info-alert">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
                 </svg>
-                <div class="live-dot"></div>
-                ${serverName}
-            `;
-        }
-    }
-}
-
-function switchServer(index) {
-    currentServerIndex = index;
-    const channel = CHANNELS.find(c => c.id === currentChannelId);
-    if (channel && channel.servers[index]) {
-        renderServers(channel);
-        loadStream(channel.servers[index].url, channel.servers[index].audioUrl, channel.servers[index].type || "hls");
-
-        // Update live indicator with server name
-        const indicator = document.querySelector('.live-indicator-on-screen');
-        if (indicator) {
-            const serverName = channel.servers[index].name || `سيرفر ${index + 1}`;
-            indicator.innerHTML = `
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 5px; opacity: 0.9;">
-                    <path d="M5 12h14"></path>
-                    <path d="M12 5v14"></path>
-                </svg>
-                <div class="live-dot"></div>
-                ${serverName}
-            `;
-        }
-    }
-}
-
-// 5. Universal Stream Loader
-function loadStream(url, audioUrl = "", type = "hls") {
-    if (!url) return;
-
-    if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-    if (currentPlayer) { currentPlayer.destroy(); currentPlayer = null; }
-
-    const container = document.getElementById('player-container');
-    if (!container) return;
-
-    const indicator = container.querySelector('.live-indicator-on-screen');
-    container.innerHTML = '';
-    if (indicator) container.appendChild(indicator);
-
-    // Handle Iframe Embed Type
-    if (type === 'iframe') {
-        const realUrl = deobfuscate(url);
-        const iframe = document.createElement('iframe');
-        iframe.src = realUrl;
-        iframe.className = 'player-iframe';
-        iframe.allowFullscreen = true;
-        iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        container.appendChild(iframe);
-        return;
-    }
-
-    const youtubeId = getYouTubeId(url);
-
-    if (youtubeId) {
-        const div = document.createElement('div');
-        div.id = 'player';
-        div.setAttribute('data-plyr-provider', 'youtube');
-        div.setAttribute('data-plyr-embed-id', youtubeId);
-        container.appendChild(div);
-
-        currentPlayer = new Plyr(div, getPlyrConfig());
-        handleOrientation(currentPlayer);
-        injectBranding();
-
-        // Ensure play attempt after ready
-        currentPlayer.on('ready', () => {
-            currentPlayer.play().catch(e => console.log('Autoplay blocked:', e));
-        });
-    } else {
-        let sourceUrl = url;
-        const isHls = url.toLowerCase().includes('.m3u8');
-
-        // Create virtual Master Playlist if audioUrl is provided
-        if (isHls && audioUrl) {
-            const masterPlaylist =
-                "#EXTM3U\n" +
-                "#EXT-X-VERSION:3\n" +
-                `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="Main",DEFAULT=YES,AUTOSELECT=YES,URI="${audioUrl}"\n` +
-                `#EXT-X-STREAM-INF:BANDWIDTH=5000000,AUDIO="audio"\n` +
-                `${url}`;
-
-            const blob = new Blob([masterPlaylist], { type: 'application/x-mpegURL' });
-            sourceUrl = URL.createObjectURL(blob);
-        }
-
-        const video = document.createElement('video');
-        video.id = 'player';
-        video.playsInline = true;
-        video.autoplay = true;
-        video.muted = false; // Enable audio by default
-        video.controls = true;
-        video.crossOrigin = 'anonymous';
-        container.appendChild(video);
-
-        currentPlayer = new Plyr(video, getPlyrConfig());
-        handleOrientation(currentPlayer);
-        injectBranding();
-
-        if (isHls && Hls.isSupported()) {
-            hlsInstance = new Hls({
-                enableWorker: true,
-                lowLatencyMode: true,
-                backBufferLength: 90
-            });
-            hlsInstance.loadSource(sourceUrl);
-            hlsInstance.attachMedia(video);
-            hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => { }));
-            hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) {
-                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hlsInstance.startLoad();
-                    else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hlsInstance.recoverMediaError();
-                }
-            });
-        } else {
-            video.src = sourceUrl;
-            video.load();
-            video.play().catch(() => { });
-        }
-    }
-}
-
-function getPlyrConfig() {
-    return {
-        autoplay: true,
-        muted: false, // Enable audio by default
-        controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
-        i18n: { play: 'تشغيل', pause: 'إيقاف', mute: 'كتم', settings: 'إعدادات' },
-        youtube: { noCookie: true, rel: 0, modestbranding: 1, iv_load_policy: 3, autoplay: 1, mute: 1 }
-    };
-}
-
-function injectBranding() {
-    setTimeout(() => {
-        const controls = document.querySelector('.plyr__controls');
-        if (!controls || document.querySelector('.plyr-branding')) return;
-
-        const branding = document.createElement('div');
-        branding.className = 'plyr-branding';
-        branding.innerHTML = `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-16a2 2 0 0 1-2-2v-2"></path>
-                <path d="M2 12h10"></path>
-                <path d="m9 15 3-3-3-3"></path>
-            </svg>
-            <span>كفومنك</span>
-        `;
-
-        const volume = controls.querySelector('.plyr__volume');
-        if (volume) volume.parentNode.insertBefore(branding, volume);
-        else controls.appendChild(branding);
-    }, 200);
-}
-
-// --- ADMIN SYSTEM ---
-
-function toggleAdmin() {
-    if (auth.currentUser) {
-        showAdminPanel();
-    } else {
-        showLoginModal();
-    }
-}
-
-function showLoginModal() {
-    document.getElementById('login-modal').style.display = 'flex';
-}
-
-function showSupportModal() {
-    const modal = document.getElementById('support-modal');
-    modal.style.display = 'flex';
-
-    // Load contact info from Firebase
-    db.collection('settings').doc('platform').get().then(doc => {
-        if (doc.exists && doc.data().contact) {
-            const contact = doc.data().contact;
-
-            // WhatsApp
-            const whatsappEl = document.getElementById('support-whatsapp');
-            if (contact.whatsapp) {
-                whatsappEl.href = `https://wa.me/${contact.whatsapp}`;
-                whatsappEl.style.display = 'flex';
-            }
-
-            // Facebook
-            const facebookEl = document.getElementById('support-facebook');
-            if (contact.facebook) {
-                facebookEl.href = contact.facebook;
-                facebookEl.style.display = 'flex';
-            }
-
-            // Instagram
-            const instagramEl = document.getElementById('support-instagram');
-            if (contact.instagram) {
-                instagramEl.href = contact.instagram;
-                instagramEl.style.display = 'flex';
-            }
-        }
-    }).catch(e => console.error('Error loading contact info:', e));
-}
-
-function sendSupportEmail(event) {
-    event.preventDefault();
-
-    const name = document.getElementById('contact-form-name').value;
-    const email = document.getElementById('contact-form-email').value;
-    const message = document.getElementById('contact-form-message').value;
-
-    const subject = encodeURIComponent(`بلاغ/رسالة من ${name}`);
-    const body = encodeURIComponent(`الاسم: ${name}\nالبريد الإلكتروني: ${email}\n\nالرسالة:\n${message}`);
-    const supportEmail = "saifpsx@gmail.com"; // البريد المستلم
-
-    const mailtoLink = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
-
-    // Open email client
-    window.open(mailtoLink, '_self');
-
-    // Optional: Reset form or show message
-    document.getElementById('support-contact-form').reset();
-    showToast('جاري فتح تطبيق البريد...');
-}
-
-function closeModal(event, modalId) {
-    if (event.target.id === modalId) document.getElementById(modalId).style.display = 'none';
-}
-
-function handleLogin() {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-
-    if (!user || !pass) {
-        showToast('يرجى إدخال البيانات');
-        return;
-    }
-
-    showToast('جاري تسجيل الدخول...');
-
-    auth.signInWithEmailAndPassword(user, pass)
-        .then(() => {
-            showToast('تم تسجيل الدخول بنجاح');
-            document.getElementById('login-modal').style.display = 'none';
-            showAdminPanel();
-        })
-        .catch((error) => {
-            console.error(error);
-            showToast('خطأ: ' + translateError(error));
-        });
-}
-
-function handleLogout() {
-    auth.signOut().then(() => showToast('تم تسجيل الخروج'));
-}
-
-function showAdminPanel() {
-    if (!auth.currentUser) return;
-    document.getElementById('admin-panel').style.display = 'flex';
-    renderAdminChannels();
-}
-
-function renderAdminChannels() {
-    const list = document.getElementById('admin-channel-list');
-    if (!list) return;
-    list.innerHTML = CHANNELS.map((ch) => `
-        <tr>
-            <td class="channel-name-cell">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="row-reorder-btns">
-                        <button class="reorder-btn" onclick="moveChannel(${ch.id}, -1)">▲</button>
-                        <button class="reorder-btn" onclick="moveChannel(${ch.id}, 1)">▼</button>
-                    </div>
-                    ${ch.name}
-                </div>
-            </td>
-            <td><span class="server-count-badge">${ch.servers.length} سيرفرات</span></td>
-            <td>
-                <div class="action-btns">
-                    <button class="btn-primary btn-sm btn-edit" onclick="editChannel(${ch.id})">تعديل</button>
-                    <button class="btn-primary btn-sm btn-danger" onclick="deleteChannel(${ch.id})">حذف</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function addServerInputRow(name = "", url = "", audioUrl = "", type = "hls") {
-    const container = document.getElementById('server-inputs-container');
-    const row = document.createElement('div');
-    row.className = 'server-row-v2';
-    row.setAttribute('data-server-type', type);
-    row.innerHTML = `
-        <div class="server-row-header">
-            <span class="server-drag-handle">☰</span>
-            <select class="srv-type" onchange="toggleAudioField(this)">
-                <option value="hls" ${type === 'hls' ? 'selected' : ''}>بث مباشر (HLS)</option>
-                <option value="iframe" ${type === 'iframe' ? 'selected' : ''}>تضمين (Iframe)</option>
-            </select>
-            <button class="remove-srv-btn" onclick="this.closest('.server-row-v2').remove()">✕</button>
-        </div>
-        <div class="server-row-body">
-            <div class="field-group">
-                <label>اسم السيرفر</label>
-                <input type="text" placeholder="مثال: HD" value="${name}" class="srv-name" required>
+                <span>بعض السيرفرات قد تستغرق وقتاً للعمل. في حال لم يعمل البث، <span class="refresh-hint">يرجى تحديث
+                        الصفحة.</span></span>
             </div>
-            <div class="field-group" style="flex: 2;">
-                <label>رابط الفيديو</label>
-                <input type="text" placeholder="رابط m3u8 أو رابط التضمين" value="${url}" class="srv-url" required>
-            </div>
-            <div class="field-group hls-only-field" style="flex: 2;">
-                <label>رابط الصوت (اختياري)</label>
-                <input type="text" placeholder="رابط m3u8 الخاص بالصوت" value="${audioUrl}" class="srv-audio-url">
-            </div>
-        </div>
-    `;
-    container.appendChild(row);
-}
-
-function toggleAudioField(select) {
-    const row = select.closest('.server-row-v2');
-    row.setAttribute('data-server-type', select.value);
-}
-
-function showChannelForm() {
-    document.getElementById('channel-form').style.display = 'block';
-    document.getElementById('edit-id').value = '';
-    document.getElementById('ch-name').value = '';
-    document.getElementById('ch-note').value = '';
-    document.getElementById('server-inputs-container').innerHTML = '';
-    addServerInputRow();
-}
-
-function hideChannelForm() { document.getElementById('channel-form').style.display = 'none'; }
-
-function saveChannel() {
-    if (!auth.currentUser) return showToast('غير مصرح لك');
-
-    const id = document.getElementById('edit-id').value || Date.now();
-    const name = document.getElementById('ch-name').value;
-    const note = document.getElementById('ch-note').value;
-    const serverRows = document.querySelectorAll('#channel-form .server-row-v2');
-    const servers = [];
-    serverRows.forEach(row => {
-        const sName = row.querySelector('.srv-name').value;
-        const sUrl = row.querySelector('.srv-url').value;
-        const sAudioUrl = row.querySelector('.srv-audio-url').value;
-        const sType = row.querySelector('.srv-type').value;
-
-        let finalUrl = sUrl;
-        if (sType === 'iframe' && sUrl && !sUrl.startsWith('http')) {
-            // Probably already obfuscated encoded string
-            finalUrl = sUrl;
-        } else if (sType === 'iframe' && sUrl) {
-            finalUrl = obfuscate(sUrl);
-        }
-
-        if (sName && sUrl) servers.push({ name: sName, url: finalUrl, audioUrl: sAudioUrl, type: sType });
-    });
-
-    if (!name || servers.length === 0) return alert('يرجى ملء البيانات');
-
-    let order = Number(id);
-    if (document.getElementById('edit-id').value) {
-        const existing = CHANNELS.find(c => c.id == id);
-        if (existing && existing.order !== undefined) order = existing.order;
-    }
-
-    const channelData = { id: Number(id), name, servers, order, note };
-
-    showToast('جاري الحفظ...');
-    db.collection('channels').doc(String(id)).set(channelData, { merge: true })
-        .then(() => {
-            showToast('تم الحفظ بنجاح');
-            hideChannelForm();
-        })
-        .catch(error => {
-            console.error("Save Error:", error);
-            showToast('خطأ في الحفظ: ' + translateError(error));
-        });
-}
-
-function editChannel(id) {
-    const ch = CHANNELS.find(c => c.id == id);
-    if (!ch) return;
-    document.getElementById('edit-id').value = ch.id;
-    document.getElementById('ch-name').value = ch.name;
-    document.getElementById('ch-note').value = ch.note || '';
-    const container = document.getElementById('server-inputs-container');
-    container.innerHTML = '';
-    ch.servers.forEach(s => {
-        const realUrl = s.type === 'iframe' ? deobfuscate(s.url) : s.url;
-        addServerInputRow(s.name, realUrl, s.audioUrl || "", s.type || "hls");
-    });
-    document.getElementById('channel-form').style.display = 'block';
-}
-
-async function deleteChannel(id) {
-    if (!auth.currentUser) return showToast('غير مصرح لك');
-    showToast('جاري التحقق من الحذف...');
-    const confirmed = await showConfirmModal('هل أنت متأكد من حذف هذه القناة؟ سيتم مسح جميع بياناتها وسيرفراتها نهائياً.');
-    if (confirmed) {
-        db.collection('channels').doc(String(id)).delete()
-            .then(() => showToast('تم الحذف'))
-            .catch(e => {
-                console.error("Delete Error:", e);
-                showToast('خطأ في الحذف: ' + translateError(e));
-            });
-    }
-}
-
-async function moveChannel(id, direction) {
-    if (!auth.currentUser) return;
-    const index = CHANNELS.findIndex(c => c.id == id);
-    if (index === -1) return;
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= CHANNELS.length) return;
-
-    const items = [...CHANNELS];
-    const [movedItem] = items.splice(index, 1);
-    items.splice(newIndex, 0, movedItem);
-
-    showToast('جاري الترتيب...');
-    try {
-        const batch = db.batch();
-        items.forEach((ch, idx) => {
-            const ref = db.collection('channels').doc(String(ch.id));
-            batch.update(ref, { order: idx });
-        });
-        await batch.commit();
-        showToast('تم الترتيب بنجاح');
-    } catch (e) {
-        console.error("Move Error:", e);
-        showToast('خطأ في الترتيب: ' + translateError(e));
-    }
-}
-
-function setupSmartTV() {
-    const ua = navigator.userAgent.toLowerCase();
-    if (ua.includes('webos')) document.body.classList.add('tv-optimized');
-}
-
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => { });
-    });
-}
-
-function switchAdminTab(tabId) {
-    document.querySelectorAll('.tab-content, .admin-tab-content').forEach(tab => {
-        tab.style.display = 'none';
-    });
-    const target = document.getElementById(tabId);
-    if (target) target.style.display = 'block';
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active');
-    });
-
-    if (tabId === 'kids-channels-tab') renderAdminKidsChannels();
-    if (tabId === 'channels-tab') renderAdminChannels();
-    if (tabId === 'movies-tab') renderAdminMovies();
-    if (tabId === 'ad-management-tab') renderAdminAds();
-}
-
-// --- KIDS CHANNELS ---
-
-function renderAdminKidsChannels() {
-    const list = document.getElementById('admin-kids-channel-list');
-    if (!list) return;
-    list.innerHTML = KIDS_CHANNELS.map((ch) => `
-        <tr>
-            <td class="channel-name-cell">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="row-reorder-btns">
-                        <button class="reorder-btn"  onclick="moveKidsChannel(${ch.id}, -1)">▲</button>
-                        <button class="reorder-btn"  onclick="moveKidsChannel(${ch.id}, 1)">▼</button>
-                    </div>
-                    ${ch.name}
-                </div>
-            </td>
-            <td><span class="server-count-badge">${ch.servers.length} سيرفرات</span></td>
-            <td>
-                <div class="action-btns">
-                    <button class="btn-primary btn-sm btn-edit" onclick="editKidsChannel(${ch.id})">تعديل</button>
-                    <button class="btn-primary btn-sm btn-danger" onclick="deleteKidsChannel(${ch.id})">حذف</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-async function moveKidsChannel(id, direction) {
-    if (!auth.currentUser) return;
-    const index = KIDS_CHANNELS.findIndex(c => c.id == id);
-    if (index === -1) return;
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= KIDS_CHANNELS.length) return;
-
-    const items = [...KIDS_CHANNELS];
-    const [movedItem] = items.splice(index, 1);
-    items.splice(newIndex, 0, movedItem);
-
-    showToast('جاري الترتيب...');
-    try {
-        const batch = db.batch();
-        items.forEach((ch, idx) => {
-            const ref = db.collection('kids_channels').doc(String(ch.id));
-            batch.update(ref, { order: idx });
-        });
-        await batch.commit();
-        showToast('تم الترتيب بنجاح');
-    } catch (e) {
-        showToast('خطأ في الترتيب');
-    }
-}
-
-function addKidsServerInputRow(name = "", url = "", audioUrl = "", type = "hls") {
-    const container = document.getElementById('kids-server-inputs-container');
-    const row = document.createElement('div');
-    row.className = 'server-row-v2';
-    row.setAttribute('data-server-type', type);
-    row.innerHTML = `
-        <div class="server-row-header">
-            <span class="server-drag-handle">☰</span>
-            <select class="srv-type" onchange="toggleAudioField(this)">
-                <option value="hls" ${type === 'hls' ? 'selected' : ''}>بث مباشر (HLS)</option>
-                <option value="iframe" ${type === 'iframe' ? 'selected' : ''}>تضمين (Iframe)</option>
-            </select>
-            <button class="remove-srv-btn" onclick="this.closest('.server-row-v2').remove()">✕</button>
-        </div>
-        <div class="server-row-body">
-            <div class="field-group">
-                <label>اسم السيرفر</label>
-                <input type="text" placeholder="مثال: HD" value="${name}" class="srv-name" required>
-            </div>
-            <div class="field-group" style="flex: 2;">
-                <label>رابط الفيديو</label>
-                <input type="text" placeholder="رابط m3u8 أو رابط التضمين" value="${url}" class="srv-url" required>
-            </div>
-            <div class="field-group hls-only-field" style="flex: 2;">
-                <label>رابط الصوت (اختياري)</label>
-                <input type="text" placeholder="رابط m3u8 الخاص بالصوت" value="${audioUrl}" class="srv-audio-url">
-            </div>
-        </div>
-    `;
-    container.appendChild(row);
-}
-
-function showKidsChannelForm() {
-    document.getElementById('kids-channel-form').style.display = 'block';
-    document.getElementById('kids-edit-id').value = '';
-    document.getElementById('kids-ch-name').value = '';
-    document.getElementById('kids-ch-note').value = '';
-    document.getElementById('kids-server-inputs-container').innerHTML = '';
-    addKidsServerInputRow();
-}
-
-function hideKidsChannelForm() {
-    document.getElementById('kids-channel-form').style.display = 'none';
-}
-
-function saveKidsChannel() {
-    if (!auth.currentUser) return;
-    const id = document.getElementById('kids-edit-id').value || Date.now();
-    const name = document.getElementById('kids-ch-name').value;
-    const note = document.getElementById('kids-ch-note').value;
-    const serverRows = document.querySelectorAll('#kids-server-inputs-container .server-row-v2');
-    const servers = [];
-    serverRows.forEach(row => {
-        const sName = row.querySelector('.srv-name').value;
-        const sUrl = row.querySelector('.srv-url').value;
-        const sAudioUrl = row.querySelector('.srv-audio-url').value;
-        const sType = row.querySelector('.srv-type').value;
-
-        let finalUrl = sUrl;
-        if (sType === 'iframe' && sUrl && !sUrl.startsWith('http')) {
-            finalUrl = sUrl;
-        } else if (sType === 'iframe' && sUrl) {
-            finalUrl = obfuscate(sUrl);
-        }
-
-        if (sName && sUrl) servers.push({ name: sName, url: finalUrl, audioUrl: sAudioUrl, type: sType });
-    });
-
-    if (!name || servers.length === 0) return alert('يرجى ملء البيانات');
-
-    let order = Number(id);
-    if (document.getElementById('kids-edit-id').value) {
-        const existing = KIDS_CHANNELS.find(c => c.id == id);
-        if (existing && existing.order !== undefined) order = existing.order;
-    }
-
-    const data = { id: Number(id), name, servers, order, note };
-    db.collection('kids_channels').doc(String(id)).set(data, { merge: true })
-        .then(() => { showToast('تم حفظ قناة الأطفال'); hideKidsChannelForm(); })
-        .catch(e => {
-            console.error("Kids Save Error:", e);
-            showToast('خطأ في الحفظ: ' + translateError(e));
-        });
-}
-
-function editKidsChannel(id) {
-    const ch = KIDS_CHANNELS.find(c => c.id == id);
-    if (!ch) return;
-    document.getElementById('kids-edit-id').value = ch.id;
-    document.getElementById('kids-ch-name').value = ch.name;
-    document.getElementById('kids-ch-note').value = ch.note || '';
-    const container = document.getElementById('kids-server-inputs-container');
-    container.innerHTML = '';
-    ch.servers.forEach(s => {
-        const realUrl = s.type === 'iframe' ? deobfuscate(s.url) : s.url;
-        addKidsServerInputRow(s.name, realUrl, s.audioUrl || "", s.type || "hls");
-    });
-    document.getElementById('kids-channel-form').style.display = 'block';
-}
-
-async function deleteKidsChannel(id) {
-    if (!auth.currentUser) return;
-    showToast('جاري التحقق من الحذف...');
-    const confirmed = await showConfirmModal('هل أنت متأكد من حذف قناة الأطفال هذه؟');
-    if (confirmed) {
-        db.collection('kids_channels').doc(String(id)).delete();
-    }
-}
-
-function handleOrientation(player) {
-    player.on('enterfullscreen', () => {
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(() => { });
-        }
-    });
-    player.on('exitfullscreen', () => {
-        if (screen.orientation && screen.orientation.unlock) {
-            screen.orientation.unlock();
-        }
-    });
-}
-
-function savePlatformSettings() {
-    const statusText = document.getElementById('site-status-text').value;
-    const siteTitle = document.getElementById('site-title').value;
-    const whatsapp = document.getElementById('contact-whatsapp').value;
-    const facebook = document.getElementById('contact-facebook').value;
-    const instagram = document.getElementById('contact-instagram').value;
-    const showRamadanSection = document.getElementById('site-show-ramadan').checked;
-
-    const settings = {
-        statusText,
-        siteTitle,
-        showRamadanSection,
-        contact: {
-            whatsapp,
-            facebook,
-            instagram
-        }
-    };
-    db.collection('settings').doc('platform').set(settings)
-        .then(() => showToast('تم حفظ الإعدادات'))
-        .catch(e => {
-            console.error("Settings Save Error:", e);
-            showToast('خطأ في حفظ الإعدادات: ' + e.message);
-        });
-}
-
-function applyPlatformSettings(settings) {
-    if (!settings) return;
-    const statusInput = document.getElementById('site-status-text');
-    const titleInput = document.getElementById('site-title');
-    if (statusInput && document.activeElement !== statusInput) statusInput.value = settings.statusText;
-    if (titleInput && document.activeElement !== titleInput) titleInput.value = settings.siteTitle;
-    if (settings.siteTitle) {
-        document.title = 'Kafomnak | ' + settings.siteTitle;
-        const siteBranding = document.getElementById('site-branding');
-        if (siteBranding) siteBranding.textContent = settings.siteTitle;
-        const footerBranding = document.getElementById('footer-site-name');
-        if (footerBranding) footerBranding.textContent = settings.siteTitle;
-    }
-    // Set Dynamic Year
-    const yearEl = document.getElementById('footer-year');
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-    if (settings.statusText) {
-        const statusDisplay = document.getElementById('status-text');
-        if (statusDisplay) {
-            statusDisplay.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div class="live-dot" style="width: 6px; height: 6px; background: var(--accent-neon); border-radius: 50%; box-shadow: 0 0 10px var(--accent-glow);"></div>
-                    ${settings.statusText}
-                </div>
-            `;
-        }
-    }
-
-    // Populate Admin Inputs (Always)
-    if (document.getElementById('site-status-text')) document.getElementById('site-status-text').value = settings.statusText || "";
-    if (document.getElementById('site-title')) document.getElementById('site-title').value = settings.siteTitle || "";
-
-    // Populate Contact Inputs
-    if (settings.contact) {
-        if (document.getElementById('contact-whatsapp')) document.getElementById('contact-whatsapp').value = settings.contact.whatsapp || "";
-        if (document.getElementById('contact-facebook')) document.getElementById('contact-facebook').value = settings.contact.facebook || "";
-        if (document.getElementById('contact-instagram')) document.getElementById('contact-instagram').value = settings.contact.instagram || "";
-
-    }
-
-    // Populate Ramadan Toggle
-    if (document.getElementById('site-show-ramadan')) {
-        document.getElementById('site-show-ramadan').checked = settings.showRamadanSection || false;
-    }
-
-    // Ad Management Sync
-    if (document.getElementById('ad-active-new')) document.getElementById('ad-active-new').checked = settings.adActive || false;
-    if (document.getElementById('ad-type-new')) document.getElementById('ad-type-new').value = settings.adType || "image";
-    if (document.getElementById('ad-url-new')) document.getElementById('ad-url-new').value = settings.adUrl || "";
-    if (document.getElementById('ad-link-new')) document.getElementById('ad-link-new').value = settings.adLink || "";
-    if (document.getElementById('ad-target')) document.getElementById('ad-target').value = settings.adTarget || "all";
-
-    renderAd(settings);
-}
-
-function saveAdSettings() {
-    if (!auth.currentUser) return showToast('غير مصرح لك');
-
-    const adActive = document.getElementById('ad-active-new').checked;
-    const adType = document.getElementById('ad-type-new').value;
-    const adUrl = document.getElementById('ad-url-new').value;
-    const adLink = document.getElementById('ad-link-new').value;
-    const adTarget = document.getElementById('ad-target').value;
-
-    db.collection('settings').doc('platform').update({
-        adActive, adType, adUrl, adLink, adTarget
-    }).then(() => {
-        showToast('تم حفظ إعدادات الإعلان');
-    }).catch(e => {
-        console.error("Ad Save Error:", e);
-        showToast('خطأ في الحفظ');
-    });
-    renderAd();
-}
-
-// --- ADVANCED AD MANAGEMENT ---
-
-function showAdForm(adId = null) {
-    const form = document.getElementById('ad-form');
-    const title = document.getElementById('ad-form-title');
-    const editId = document.getElementById('ad-edit-id');
-    const container = document.getElementById('ad-slider-items-container');
-    const scriptInput = document.getElementById('ad-script-input');
-
-    form.style.display = 'block';
-    container.innerHTML = '';
-    scriptInput.value = '';
-
-    if (adId) {
-        const ad = ADS.find(a => a.id === adId);
-        if (!ad) return;
-
-        title.textContent = "تعديل البطاقة الإعلانية";
-        editId.value = ad.id;
-        document.getElementById('ad-type-select').value = ad.type;
-        document.getElementById('ad-target-select').value = ad.target || 'all';
-
-        if (ad.type === 'slider' || ad.type === 'dual' || ad.type === 'triple') {
-            if (ad.type === 'slider') {
-                document.getElementById('ad-slider-interval').value = (ad.interval || 5000) / 1000;
-            }
-            ad.items.forEach(item => addAdSliderItem(item.url, item.link));
-        } else if (ad.type === 'script') {
-            scriptInput.value = ad.script || '';
-        } else {
-            document.getElementById('ad-url-input').value = ad.items[0]?.url || '';
-            document.getElementById('ad-link-input').value = ad.items[0]?.link || '';
-        }
-    } else {
-        title.textContent = "إضافة بطاقة إعلانية جديدة";
-        editId.value = "";
-        document.getElementById('ad-url-input').value = "";
-        document.getElementById('ad-link-input').value = "";
-        addAdSliderItem(); // Default one row for slider if switched
-    }
-
-    toggleAdFormType();
-    form.scrollIntoView({ behavior: 'smooth' });
-}
-
-function hideAdForm() {
-    document.getElementById('ad-form').style.display = 'none';
-}
-
-function toggleAdFormType() {
-    const type = document.getElementById('ad-type-select').value;
-    const single = document.getElementById('ad-single-content');
-    const slider = document.getElementById('ad-slider-content');
-    const script = document.getElementById('ad-script-content');
-    const urlLabel = document.getElementById('ad-url-label');
-    const linkWrapper = document.getElementById('ad-link-wrapper');
-    const container = document.getElementById('ad-slider-items-container');
-
-    // Reset displays
-    single.style.display = 'none';
-    slider.style.display = 'none';
-    script.style.display = 'none';
-
-    if (type === 'slider' || type === 'dual' || type === 'triple') {
-        slider.style.display = 'block';
-
-        if (type === 'dual' || type === 'triple') {
-            document.getElementById('ad-slider-interval').parentElement.style.display = 'none';
-            const targetCount = type === 'dual' ? 2 : 3;
-            const currentRows = container.querySelectorAll('.ad-slider-item-card').length;
-
-            if (currentRows < targetCount) {
-                for (let i = currentRows; i < targetCount; i++) addAdSliderItem();
-            } else if (currentRows > targetCount) {
-                const rows = container.querySelectorAll('.ad-slider-item-card');
-                for (let i = targetCount; i < currentRows; i++) rows[i].remove();
-            }
-        } else {
-            document.getElementById('ad-slider-interval').parentElement.style.display = 'block';
-        }
-    } else if (type === 'script') {
-        script.style.display = 'block';
-    } else {
-        single.style.display = 'block';
-        urlLabel.textContent = type === 'video' ? "رابط الفيديو المباشر" : "رابط الصورة";
-        linkWrapper.style.display = "block"; // Always show link for redirect
-    }
-}
-
-function addAdSliderItem(url = "", link = "") {
-    const container = document.getElementById('ad-slider-items-container');
-    const row = document.createElement('div');
-    row.className = 'ad-slider-item-card input-group';
-    row.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <span style="font-size: 11px; font-weight: 800; color: var(--accent-neon); text-transform: uppercase; letter-spacing: 1px;">عنصر الإعلان</span>
-            <button onclick="removeAdItem(this)" 
-                    style="background: rgba(255,59,48,0.1); border: none; color: #ff3b30; cursor: pointer; font-size: 14px; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s;">
-                &times;
-            </button>
-        </div>
-        <div style="margin-bottom: 12px;">
-            <label style="font-size: 10px; margin-bottom: 5px; display: block; color: var(--text-muted);">رابط محتوى الإعلان (صورة أو فيديو)</label>
-            <input type="text" placeholder="https://..." value="${url}" class="slider-item-url ad-form-input">
-        </div>
-        <div>
-            <label style="font-size: 10px; margin-bottom: 5px; display: block; color: var(--text-muted);">رابط التوجيه عند النقر (Link)</label>
-            <input type="text" placeholder="https://..." value="${link}" class="slider-item-link ad-form-input">
-        </div>
-    `;
-    container.appendChild(row);
-}
-
-async function saveAdCard() {
-    if (!auth.currentUser) return showToast('غير مصرح لك');
-
-    const id = document.getElementById('ad-edit-id').value;
-    const type = document.getElementById('ad-type-select').value;
-    const target = document.getElementById('ad-target-select').value;
-    const active = true; // New ads are active by default
-
-    let items = [];
-    let interval = 5000;
-    let scriptCode = "";
-
-    if (type === 'slider' || type === 'dual' || type === 'triple') {
-        if (type === 'slider') {
-            interval = parseInt(document.getElementById('ad-slider-interval').value) * 1000;
-        }
-        const rows = document.querySelectorAll('#ad-slider-items-container .ad-slider-item-card');
-        rows.forEach(row => {
-            const url = row.querySelector('.slider-item-url').value;
-            const link = row.querySelector('.slider-item-link').value;
-            if (url) items.push({ url, link });
-        });
-    } else if (type === 'script') {
-        scriptCode = document.getElementById('ad-script-input').value;
-        if (!scriptCode) return showToast('يرجى إضافة كود الإعلان');
-    } else {
-        items.push({
-            url: document.getElementById('ad-url-input').value,
-            link: document.getElementById('ad-link-input').value
-        });
-    }
-
-    if (type !== 'script' && (items.length === 0 || !items[0].url)) return showToast('يرجى إضافة محتوى');
-
-    const adData = {
-        type,
-        target,
-        active,
-        items,
-        script: scriptCode,
-        interval,
-        clicks: 0,
-        item_clicks: {},
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    showToast('جاري الحفظ...');
-    try {
-        if (id) {
-            await db.collection('ads').doc(id).update(adData);
-        } else {
-            await db.collection('ads').add(adData);
-        }
-        showToast('تم الحفظ بنجاح');
-        hideAdForm();
-    } catch (e) {
-        showToast('خطأ في الحفظ: ' + e.message);
-    }
-}
-
-function renderAdminAds() {
-    const container = document.getElementById('admin-ad-list');
-    if (!container) return;
-
-    container.innerHTML = ADS.map(ad => `
-        <div class="ad-admin-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-stroke); border-radius: 16px; padding: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${ad.active ? 'var(--accent-neon)' : '#ff3b30'};"></div>
-                    <span style="font-size: 12px; font-weight: 800;">${(ad.type || 'IMAGE').toUpperCase()}</span>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="showAdForm('${ad.id}')" style="background: none; border: none; color: var(--accent-neon); cursor: pointer;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg>
-                    </button>
-                    <button onclick="deleteAdCard('${ad.id}')" style="background: none; border: none; color: #ff3b30; cursor: pointer;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                </div>
-            </div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between;">
-                <span>الهدف: ${ad.target === 'all' ? 'الكل' : ad.target === 'main' ? 'الرئيسي' : ad.target === 'movies' ? 'الأفلام' : 'الأطفال'}</span>
-                <span style="color: var(--accent-neon); font-weight: 900;">🔥 ${Object.values(ad.item_clicks || {}).reduce((a, b) => a + Number(b), 0) || ad.clicks || 0} نقرة</span>
-            </div>
-            ${(ad.type === 'slider' || ad.type === 'dual' || ad.type === 'triple') ? `
-                <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 8px;">
-                    ${(ad.items || []).map((_, i) => `<span>عنصر ${i + 1}: <b style="color:#fff">${ad.item_clicks?.[String(i)] || 0}</b></span>`).join('')}
-                </div>
-            ` : ''}
-            <div style="width: 100%; height: 60px; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--glass-stroke); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); text-align: center; padding: 5px;">
-                ${ad.type === 'video' ?
-            `<img src="https://img.youtube.com/vi/${getYouTubeId(ad.items?.[0]?.url || '') || '0'}/mqdefault.jpg" alt="معاينة الفيديو" style="width: 100%; height: 100%; object-fit: cover;">` :
-            ad.type === 'script' ?
-                `<div style="line-height:1.2; overflow:hidden; font-family: monospace; white-space: pre-wrap; word-break: break-all;">{ كود برمجي }<br>${(ad.script || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])).substring(0, 40)}...</div>` :
-                `<img src="${ad.items?.[0]?.url || ''}" alt="معاينة الإعلان" style="width: 100%; height: 100%; object-fit: cover;">`
-        }
-            </div>
-            <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
-                <button onclick="toggleAdCardStatus('${ad.id}', ${!ad.active})" class="btn-primary btn-sm btn-outline" style="width: 100%; font-size: 10px; height: 32px;">
-                    ${ad.active ? 'إيقاف مؤقت' : 'تفعيل الآن'}
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p>© <span id="footer-year"></span> <span id="footer-site-name">كفومنك</span> | جميع الحقوق محفوظة
+                    <svg class="flag-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600">
+                        <rect width="1200" height="600" fill="#000" />
+                        <rect width="1200" height="400" y="200" fill="#fff" />
+                        <rect width="1200" height="200" y="400" fill="#007a3d" />
+                        <path d="M0 0 L600 300 L0 600 Z" fill="#e4312b" />
+                    </svg>
+                </p>
+                <p style="font-size: 11px; opacity: 0.7; margin: 5px 0 10px 0;">أفضل تجربة مشاهدة بجودة عالية</p>
+                <button class="support-btn" onclick="showSupportModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    بلغ عن مشكلة
                 </button>
             </div>
+        </footer>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay" onclick="closeModal(event, 'login-modal')">
+        <div class="modal-content">
+            <div class="modal-header" style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin-bottom: 10px;">تسجيل الدخول</h2>
+                <p style="font-size: 12px; color: var(--text-muted);">لوحة تحكم المشرف</p>
+            </div>
+            <div class="input-group">
+                <label>اسم المستخدم</label>
+                <input type="text" id="username" placeholder="admin">
+            </div>
+            <div class="input-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">دخول</button>
         </div>
-    `).join('');
-}
+    </div>
 
-async function deleteAdCard(id) {
-    const confirmed = await showConfirmModal('هل متأكد من حذف هذا الإعلان؟');
-    if (confirmed) {
-        db.collection('ads').doc(id).delete();
-    }
-}
-
-function toggleAdCardStatus(id, newStatus) {
-    db.collection('ads').doc(id).update({ active: newStatus });
-}
-
-function renderAd() {
-    const container = document.getElementById('ad-container');
-    if (!container) return;
-
-    const activeAds = ADS.filter(ad => ad.active && (ad.target === 'all' || ad.target === 'main'));
-
-    if (activeAds.length === 0) {
-        container.style.display = 'none';
-        container.innerHTML = '';
-        return;
-    }
-
-    // Clear existing intervals
-    Object.values(adSliderIntervals).forEach(clearInterval);
-    adSliderIntervals = {};
-
-    container.style.display = 'block';
-
-    // Clear existing contents to re-render all
-    container.innerHTML = '';
-
-    activeAds.forEach((ad, adIndex) => {
-        const adWrapper = document.createElement('div');
-        adWrapper.className = 'ad-item-wrapper';
-        adWrapper.style.marginBottom = adIndex < activeAds.length - 1 ? '15px' : '0';
-        container.appendChild(adWrapper);
-
-        if (ad.type === 'slider') {
-            let currentIndex = 0;
-            const renderSliderItem = (index) => {
-                const item = ad.items[index];
-                adWrapper.innerHTML = `
-                    <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${index})" class="ad-box slide-fade">
-                        <img src="${item.url}" alt="إعلان">
-                    </a>
-                `;
-            };
-
-            renderSliderItem(0);
-            if (ad.items.length > 1) {
-                adSliderIntervals[ad.id] = setInterval(() => {
-                    currentIndex = (currentIndex + 1) % ad.items.length;
-                    renderSliderItem(currentIndex);
-                }, ad.interval || 5000);
-            }
-        } else if (ad.type === 'dual' || ad.type === 'triple') {
-            adWrapper.innerHTML = `
-                <div class="${ad.type === 'dual' ? 'ad-grid' : 'ad-grid-triple'}">
-                    ${ad.items.slice(0, ad.type === 'dual' ? 2 : 3).map((item, idx) => `
-                        <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', ${idx})" class="ad-box ad-box-slim">
-                            <img src="${item.url}" alt="إعلان">
-                        </a>
-                    `).join('')}
+    <!-- Admin Panel Modal -->
+    <div id="admin-panel" class="modal-overlay" onclick="closeModal(event, 'admin-panel')">
+        <div class="modal-content admin-modal">
+            <button class="modal-close-x" onclick="document.getElementById('admin-panel').style.display = 'none'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <!-- Platform Stats Dashboard -->
+            <div class="admin-stats-grid"
+                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; padding: 5px;">
+                <div class="stat-card"
+                    style="background: rgba(0, 255, 148, 0.05); border: 1px solid rgba(0, 255, 148, 0.2); border-radius: 16px; padding: 15px; text-align: center;">
+                    <div
+                        style="font-size: 10px; color: var(--accent-neon); text-transform: uppercase; font-weight: 800; margin-bottom: 5px;">
+                        المتواجدون الآن</div>
+                    <div id="stats-online-now" style="font-size: 24px; font-weight: 900; color: #fff;">0</div>
                 </div>
-            `;
-        } else if (ad.type === 'video') {
-            const item = ad.items[0];
-            const ytId = getYouTubeId(item.url);
-            if (ytId) {
-                adWrapper.innerHTML = `
-                    <div class="ad-box">
-                        <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}" 
-                                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                <div class="stat-card"
+                    style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-stroke); border-radius: 16px; padding: 15px; text-align: center;">
+                    <div
+                        style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 5px;">
+                        مشاهدات الشهر</div>
+                    <div id="stats-monthly-views" style="font-size: 24px; font-weight: 900; color: #fff;">0</div>
+                </div>
+                <div class="stat-card"
+                    style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-stroke); border-radius: 16px; padding: 15px; text-align: center;">
+                    <div
+                        style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 5px;">
+                        مشاهدات السنة</div>
+                    <div id="stats-yearly-views" style="font-size: 24px; font-weight: 900; color: #fff;">0</div>
+                </div>
+            </div>
+
+            <!-- Traffic Sources Section -->
+            <div class="admin-referrers-section"
+                style="margin-bottom: 25px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-stroke); border-radius: 20px;">
+                <h3
+                    style="font-size: 10px; color: var(--accent-neon); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; font-weight: 800; opacity: 0.8;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    مصادر الزيارات (Traffic Sources)
+                </h3>
+                <div id="admin-referrers-list"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;">
+                    <!-- Content injected via JS -->
+                    <div style="font-size: 10px; color: var(--text-muted);">جاري تحميل البيانات...</div>
+                </div>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="switchAdminTab('channels-tab')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
+                        <polyline points="17 2 12 7 7 2" />
+                    </svg>
+                    إدارة القنوات
+                </button>
+                <button class="tab-btn" onclick="switchAdminTab('kids-channels-tab')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                        <line x1="9" y1="9" x2="9.01" y2="9" />
+                        <line x1="15" y1="9" x2="15.01" y2="9" />
+                    </svg>
+                    قنوات الأطفال
+                </button>
+                <button class="tab-btn" onclick="switchAdminTab('movies-tab')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                    </svg>
+                    الأفلام والمسلسلات
+                </button>
+                <button class="tab-btn" onclick="switchAdminTab('ad-management-tab')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                    إدارة الإعلانات
+                </button>
+                <button class="tab-btn" onclick="switchAdminTab('settings-tab')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                    إعدادات المنصة
+                </button>
+            </div>
+
+            <!-- Channels Tab Content -->
+            <div id="channels-tab" class="tab-content">
+                <div class="modal-header"
+                    style="display: flex; justify-content: space-between; align-items: center; text-align: right; margin-bottom: 30px;">
+                    <div>
+                        <h2 style="color: var(--accent-neon); margin-bottom: 5px;">لوحة تحكم القنوات</h2>
+                        <p style="font-size: 12px; color: var(--text-muted);">إدارة السيرفرات والبث المباشر</p>
                     </div>
-                `;
-            } else {
-                const targetId = `vid-${Math.random().toString(36).substr(2, 9)}`;
-                adWrapper.innerHTML = `
-                    <a href="${item.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
-                        <video id="${targetId}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;"></video>
-                    </a>
-                `;
-                renderProtectedVideo(targetId, item.url);
-            }
-        } else if (ad.type === 'script') {
-            try {
-                const range = document.createRange();
-                const frag = range.createContextualFragment(ad.script || '');
-                adWrapper.appendChild(frag);
-            } catch (e) {
-                console.error("Script Ad error:", e);
-                adWrapper.innerHTML = `<p style="color:red; font-size:10px;">خطأ في تحميل الكود البرمجي</p>`;
-            }
-        } else {
-            const firstItem = ad.items?.[0] || { url: '', link: '#' };
-            adWrapper.innerHTML = `
-                <a href="${firstItem.link || '#'}" target="_blank" onclick="trackAdClick('${ad.id}', 0)" class="ad-box">
-                    <img src="${firstItem.url}" alt="إعلان ترويجي" alt="إعلان">
+                    <button class="btn-primary btn-sm" style="width: auto; padding: 10px 20px;"
+                        onclick="showChannelForm()">إضافة قناة جديدة +</button>
+                </div>
+
+                <div id="channel-form"
+                    style="display: none; margin-bottom: 30px; padding: 25px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid var(--glass-stroke);">
+                    <input type="hidden" id="edit-id">
+                    <div class="input-group">
+                        <label>اسم القناة</label>
+                        <input type="text" id="ch-name" placeholder="كفومنك 1">
+                    </div>
+                    <div class="input-group">
+                        <label>ملاحظة القناة (تظهر تحت السيرفرات)</label>
+                        <input type="text" id="ch-note" placeholder="مثال: يرجى تحديث الصفحة في حال توقف البث">
+                    </div>
+
+                    <div id="server-inputs-container">
+                        <label
+                            style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 800;">السيرفرات
+                            والروابط</label>
+                        <!-- Row templates injected here -->
+                    </div>
+
+                    <button class="btn-primary btn-outline btn-sm" style="margin-bottom: 20px; width: auto;"
+                        onclick="addServerInputRow()">+ إضافة سيرفر آخر</button>
+
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-primary" style="flex: 1;" onclick="saveChannel()">حفظ القناة بالكامل</button>
+                        <button class="btn-primary btn-outline" style="flex: 1;"
+                            onclick="hideChannelForm()">إلغاء</button>
+                    </div>
+                </div>
+
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>اسم القناة</th>
+                                <th>السيرفرات</th>
+                                <th style="text-align: left;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-channel-list">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Kids Channels Tab Content -->
+            <div id="kids-channels-tab" class="tab-content" style="display: none;">
+                <div class="modal-header"
+                    style="display: flex; justify-content: space-between; align-items: center; text-align: right; margin-bottom: 30px;">
+                    <div>
+                        <h2 style="color: #FF6B9D; margin-bottom: 5px;">إدارة قنوات الأطفال</h2>
+                        <p style="font-size: 12px; color: var(--text-muted);">محتوى آمن ومناسب للأطفال</p>
+                    </div>
+                    <button class="btn-primary btn-sm" style="width: auto; padding: 10px 20px; background: #FF6B9D;"
+                        onclick="showKidsChannelForm()">إضافة قناة أطفال +</button>
+                </div>
+
+                <div id="kids-channel-form"
+                    style="display: none; margin-bottom: 30px; padding: 25px; background: rgba(255,107,157,0.05); border-radius: 16px; border: 1px solid rgba(255,107,157,0.2);">
+                    <input type="hidden" id="kids-edit-id">
+                    <div class="input-group">
+                        <label>اسم القناة</label>
+                        <input type="text" id="kids-ch-name" placeholder="قناة الأطفال 1">
+                    </div>
+                    <div class="input-group">
+                        <label>ملاحظة القناة (تظهر تحت السيرفرات)</label>
+                        <input type="text" id="kids-ch-note" placeholder="مثال: محتوى تعليمي آمن">
+                    </div>
+
+                    <div id="kids-server-inputs-container">
+                        <label
+                            style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 800;">السيرفرات
+                            والروابط</label>
+                        <!-- Row templates injected here -->
+                    </div>
+
+                    <button class="btn-primary btn-outline btn-sm" style="margin-bottom: 20px; width: auto;"
+                        onclick="addKidsServerInputRow()">+ إضافة سيرفر آخر</button>
+
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-primary" style="flex: 1; background: #FF6B9D;"
+                            onclick="saveKidsChannel()">حفظ القناة</button>
+                        <button class="btn-primary btn-outline" style="flex: 1;"
+                            onclick="hideKidsChannelForm()">إلغاء</button>
+                    </div>
+                </div>
+
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>اسم القناة</th>
+                                <th>السيرفرات</th>
+                                <th style="text-align: left;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-kids-channel-list">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Movies Tab Content -->
+            <div id="movies-tab" class="tab-content" style="display: none;">
+                <div class="modal-header"
+                    style="display: flex; justify-content: space-between; align-items: center; text-align: right; margin-bottom: 30px;">
+                    <div>
+                        <h2 style="color: #E50914; margin-bottom: 5px;">إدارة الأفلام والمسلسلات</h2>
+                        <p style="font-size: 12px; color: var(--text-muted);">إضافة أفلام ومسلسلات جديدة</p>
+                    </div>
+                    <button class="btn-primary btn-sm" style="width: auto; padding: 10px 20px; background: #E50914;"
+                        onclick="showMoviesForm()">إضافة فيلم/مسلسل +</button>
+                </div>
+
+                <!-- Movie Add/Edit Modal Overlay -->
+                <div id="movies-modal-overlay" class="admin-modal-overlay"
+                    onclick="closeAdminModalOnClickOutside(event, 'movies-modal-overlay')">
+                    <div id="movies-form" class="admin-modal-content"
+                        style="display: none; background: #111; border: 1px solid rgba(229, 9, 20, 0.2); box-shadow: 0 0 30px rgba(0,0,0,0.5);">
+                        <div class="modal-header-v2"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 15px;">
+                            <h3 id="movies-form-title" style="margin: 0; color: #E50914;">إضافة محتوى جديد</h3>
+                            <button class="close-modal-btn-v2" onclick="hideMoviesForm()"
+                                style="background: none; border: none; color: #666; cursor: pointer;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <input type="hidden" id="movies-edit-id">
+
+                        <div class="admin-modal-scroll-area">
+                            <div class="input-group">
+                                <label>نوع المحتوى</label>
+                                <select id="movies-type" onchange="toggleMovieTypeLabels()"
+                                    style="background: #080808; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+                                    <option value="movie">فيلم</option>
+                                    <option value="series">مسلسل</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label>اسم الفيلم / المسلسل</label>
+                                <input type="text" id="movies-name" placeholder="اسم الفيلم">
+                            </div>
+                            <div class="input-group">
+                                <label>صورة الغلاف (رابط الصورة)</label>
+                                <input type="text" id="movies-image" placeholder="https://example.com/poster.jpg">
+                            </div>
+                            <div class="input-group">
+                                <label>ملاحظة (سنة الإنتاج / ملاحظة قصيرة)</label>
+                                <input type="text" id="movies-note" placeholder="2024 - مترجم">
+                            </div>
+                            <div class="input-group">
+                                <label>ملاحظة المنبثقة (تظهر داخل المشغل)</label>
+                                <input type="text" id="movies-popup-note"
+                                    placeholder="مثال: يرجى الانتظار قليلاً للتحميل...">
+                            </div>
+                            <div class="input-group">
+                                <label>تصنيف الفيلم (أكشن، دراما، إلخ...)</label>
+                                <input type="text" id="movies-genre" placeholder="مثال: أكشن، دراما">
+                            </div>
+
+                            <div class="input-group">
+                                <label>وصف (قصة العمل)</label>
+                                <textarea id="movies-desc" placeholder="اكتب نبذة عن القصة..."
+                                    style="width: 100%; height: 80px; background: #080808; border: 1px solid #333; color: #fff; border-radius: 8px; padding: 10px;"></textarea>
+                            </div>
+
+                            <div id="movies-server-inputs-container">
+                                <label id="movies-servers-label"
+                                    style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 800;">السيرفرات
+                                    والروابط</label>
+                                <!-- Row templates injected here -->
+                            </div>
+
+                            <button id="add-server-btn" class="btn-primary btn-outline btn-sm"
+                                style="margin-bottom: 20px; width: auto;" onclick="addMoviesServerInputRow()">+ إضافة
+                                سيرفر
+                                آخر</button>
+                        </div>
+
+                        <div class="modal-footer-v2"
+                            style="display: flex; gap: 15px; margin-top: 20px; border-top: 1px solid #222; padding-top: 15px;">
+                            <button class="btn-primary" style="flex: 1; background: #E50914;" onclick="saveMovie()">حفظ
+                                المحتوى</button>
+                            <button class="btn-primary btn-outline" style="flex: 1;"
+                                onclick="hideMoviesForm()">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and Filters -->
+                <div class="admin-controls-bar"
+                    style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; background: rgba(229, 9, 20, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(229, 9, 20, 0.1);">
+                    <div style="flex: 1; min-width: 250px; position: relative;">
+                        <input type="text" id="admin-movie-search" placeholder="بحث عن فيلم أو مسلسل..."
+                            style="width: 100%; padding: 10px 40px 10px 15px; background: #111; border: 1px solid #333; color: #fff; border-radius: 8px;"
+                            oninput="handleAdminMovieSearch()">
+                        <svg style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #666;"
+                            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+
+                    <div class="filter-buttons" style="display: flex; gap: 8px;">
+                        <button class="filter-btn active" id="filter-all"
+                            onclick="setAdminMovieFilter('all')">الكل</button>
+                        <button class="filter-btn" id="filter-movie"
+                            onclick="setAdminMovieFilter('movie')">الأفلام</button>
+                        <button class="filter-btn" id="filter-series"
+                            onclick="setAdminMovieFilter('series')">المسلسلات</button>
+                    </div>
+                </div>
+
+                <div id="admin-movies-grid" class="admin-movies-grid">
+                    <!-- Cards injected here -->
+                </div>
+
+                <div id="admin-movies-pagination" class="pagination-container"
+                    style="margin-top: 30px; display: flex; justify-content: center; gap: 8px;">
+                    <!-- Pagination buttons injected here -->
+                </div>
+
+            </div>
+
+            <!-- Ad Management Tab -->
+            <div id="ad-management-tab" class="admin-tab-content" style="display: none;">
+                <div class="modal-header"
+                    style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div
+                            style="background: var(--accent-neon); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #000;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 style="font-size: 18px;">المساحات الإعلانية</h2>
+                            <p style="font-size: 12px; color: var(--text-muted);">أضف بطاقات إعلانية أو سلايدر متحرك</p>
+                        </div>
+                    </div>
+                    <button class="btn-primary btn-sm" style="width: auto;" onclick="showAdForm()">+ إضافة إعلان
+                        جديد</button>
+                </div>
+
+                <!-- Ad Form (Hidden by default) -->
+                <div id="ad-form"
+                    style="display: none; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-stroke); border-radius: 20px; padding: 25px; margin-bottom: 30px;">
+                    <h3 id="ad-form-title" style="color: var(--accent-neon); margin-bottom: 20px; font-size: 16px;">
+                        إضافة بطاقة إعلانية</h3>
+                    <input type="hidden" id="ad-edit-id">
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="input-group">
+                            <label>نوع الإعلان</label>
+                            <select id="ad-type-select" onchange="toggleAdFormType()" class="ad-form-select">
+                                <option value="image">صورة واحدة (Banner)</option>
+                                <option value="video">فيديو (YouTube)</option>
+                                <option value="slider">سلايدر متحرك (Slider)</option>
+                                <option value="dual">إعلان مزدوج (2 بجانب بعض)</option>
+                                <option value="triple">إعلان ثلاثي (3 بجانب بعض)</option>
+                                <option value="script">كود برمجي (Script/HTML)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>مكان الظهور</label>
+                            <select id="ad-target-select" class="ad-form-select">
+                                <option value="all">في كل مكان</option>
+                                <option value="main">الموقع الرئيسي فقط</option>
+                                <option value="kids">قسم الأطفال فقط</option>
+                                <option value="movies">قسم الأفلام فقط</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Single Content (Image/Video) -->
+                    <div id="ad-single-content">
+                        <div class="input-group">
+                            <label id="ad-url-label">رابط الصورة أو الفيديو</label>
+                            <input type="text" id="ad-url-input" placeholder="URL المباشر" class="ad-form-input">
+                        </div>
+                        <div class="input-group" id="ad-link-wrapper">
+                            <label>رابط التوجيه (Link)</label>
+                            <input type="text" id="ad-link-input" placeholder="https://..." class="ad-form-input">
+                        </div>
+                    </div>
+
+                    <!-- Script/HTML Content -->
+                    <div id="ad-script-content" style="display: none;">
+                        <div class="input-group">
+                            <label>كود الإعلان (HTML/JS)</label>
+                            <textarea id="ad-script-input" rows="8" placeholder="الصق كود AdSense هنا..."
+                                class="ad-form-input"
+                                style="width: 100%; resize: vertical; font-family: monospace; font-size: 13px;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Slider Content -->
+                    <div id="ad-slider-content" style="display: none;">
+                        <div class="input-group">
+                            <label>سرعة التبديل (بالثواني)</label>
+                            <input type="number" id="ad-slider-interval" value="5" min="1" class="ad-form-input"
+                                style="width: 100px;">
+                        </div>
+                        <div id="ad-slider-items-container">
+                            <!-- Slider item rows -->
+                        </div>
+                        <button class="btn-primary btn-outline btn-sm" style="width: auto; margin-top: 10px;"
+                            onclick="addAdSliderItem()">+ إضافة صورة للسلايدر</button>
+                    </div>
+
+                    <div style="display: flex; gap: 15px; margin-top: 25px;">
+                        <button class="btn-primary" style="flex: 1;" onclick="saveAdCard()">حفظ البطاقة</button>
+                        <button class="btn-primary btn-outline" style="flex: 1;" onclick="hideAdForm()">إلغاء</button>
+                    </div>
+                </div>
+
+                <!-- Ad Cards List -->
+                <div id="admin-ad-list" style="display: grid; grid-template-columns: repeat(3, 1fr);; gap: 20px;">
+                    <!-- Ad cards injected here -->
+                </div>
+            </div>
+
+            <!-- Settings Tab Content -->
+            <div id="settings-tab" class="admin-tab-content" style="display: none;">
+                <div class="modal-header" style="margin-bottom: 20px;">
+                    <h2 style="font-size: 18px;">إعدادات المنصة</h2>
+                </div>
+                <div class="admin-forms-container"
+                    style="padding: 25px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid var(--glass-stroke);">
+                    <div class="input-group">
+                        <label>نص الحالة (Live Status)</label>
+                        <input type="text" id="site-status-text" placeholder="بث مباشر (Ultra HD)">
+                    </div>
+                    <div class="input-group">
+                        <label>عنوان الموقع</label>
+                        <input type="text" id="site-title" placeholder="كفومنك">
+                    </div>
+
+                    <div class="input-group"
+                        style="margin-top: 15px; background: rgba(0, 255, 148, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(0, 255, 148, 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 20px;">🌙</span>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 900; color: #fff;">قسم رمضان يجمعنا</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">إظهار أو إخفاء قسم رمضان
+                                        بالكامل من الموقع</div>
+                                </div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="site-show-ramadan">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--glass-stroke);">
+                        <h3
+                            style="color: var(--accent-neon); font-size: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            معلومات التواصل
+                        </h3>
+                        <div class="input-group">
+                            <label>رقم الواتساب (مع رمز الدولة)</label>
+                            <input type="text" id="contact-whatsapp" placeholder="970599123456">
+                        </div>
+                        <div class="input-group">
+                            <label>رابط صفحة الفيسبوك</label>
+                            <input type="text" id="contact-facebook" placeholder="https://facebook.com/yourpage">
+                        </div>
+                        <div class="input-group">
+                            <label>رابط حساب الانستغرام</label>
+                            <input type="text" id="contact-instagram" placeholder="https://instagram.com/youraccount">
+                        </div>
+
+                    </div>
+
+                    <button class="btn-primary" onclick="savePlatformSettings()">حفظ التغييرات</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; display: flex; justify-content: space-between; align-items: center;">
+                <button class="btn-primary btn-secondary btn-sm" style="width: auto; padding: 10px 25px;"
+                    onclick="handleLogout()">تسجيل الخروج</button>
+                <div style="text-align: left;">
+                    <p style="font-size: 11px; color: var(--text-muted); font-weight: 800;">KAFOMNAK ADMIN</p>
+                    <p style="font-size: 9px; color: var(--accent-neon); opacity: 0.8;">النسخة الاحترافية</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="modal-overlay" style="z-index: 9999;">
+        <div class="modal-content confirm-modal-content" style="max-width: 400px; text-align: center;">
+            <div class="confirm-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                    </path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <h2 style="margin: 15px 0 10px 0; color: #fff;">هل أنت متأكد؟</h2>
+            <p id="confirm-message" style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">حذف هذه
+                القناة سيؤدي إلى إزالتها نهائياً من القائمة.</p>
+            <div style="display: flex; gap: 15px;">
+                <button id="confirm-yes" class="btn-primary" style="background: #ff3b30; flex: 1;">حذف الآن</button>
+                <button id="confirm-no" class="btn-primary btn-outline" style="flex: 1;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support & Social Modal -->
+    <div id="support-modal" class="modal-overlay" onclick="closeModal(event, 'support-modal')">
+        <div class="modal-content" style="max-width: 450px; text-align: center; padding: 35px;">
+            <div
+                style="background: rgba(0, 255, 148, 0.1); width: 60px; height: 60px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; color: var(--accent-neon);">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </div>
+            <h2 style="color: #fff; margin-bottom: 10px; font-size: 22px;">بلغ عن مشكلة</h2>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 30px; line-height: 1.6;">يسعدنا سماع
+                رأيك أو مساعدتك في حال وجود أي مشكلة تقنية، تواصل معنا عبر:</p>
+
+            <div class="social-grid">
+                <a id="support-whatsapp" href="#" target="_blank" class="social-item whatsapp" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.5 8.38 8.38 0 0 1 3.8.9L21 3z">
+                        </path>
+                    </svg>
+                    واتساب
                 </a>
-            `;
-        }
-    });
-}
+                <a id="support-facebook" href="#" target="_blank" class="social-item facebook" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                    </svg>
+                    فيسبوك
+                </a>
+                <a id="support-instagram" href="#" target="_blank" class="social-item instagram" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                    انستغرام
+                </a>
 
-function trackAdClick(adId, itemIndex = 0) {
-    if (!adId) return;
-    const field = `item_clicks.${itemIndex}`;
-    db.collection('ads').doc(adId).update({
-        [field]: firebase.firestore.FieldValue.increment(1),
-        clicks: firebase.firestore.FieldValue.increment(1)
-    }).catch(e => console.error("Tracking Error:", e));
-}
-
-function removeAdItem(btn) {
-    const card = btn.closest('.ad-slider-item-card');
-    if (card) card.remove();
-}
-
-function renderProtectedVideo(videoElementId, originalUrl) {
-    const video = document.getElementById(videoElementId);
-    if (!video) return;
-
-    const isM3U8 = originalUrl.toLowerCase().includes('.m3u8');
-
-    if (isM3U8 && Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(originalUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => { }));
-    } else if (video.canPlayType('application/vnd.apple.mpegurl') && isM3U8) {
-        // Native HLS support (Safari)
-        video.src = originalUrl;
-    } else {
-        // Standard Video - Convert to Blob URL for maximum obfuscation
-        fetch(originalUrl)
-            .then(res => res.blob())
-            .then(blob => {
-                const blobUrl = URL.createObjectURL(blob);
-                video.src = blobUrl;
-                // Cleanup to prevent memory leaks if needed, but for loop/ads we keep it
-            })
-            .catch(e => {
-                console.error("Video Loading Error:", e);
-                video.src = originalUrl; // Fallback
-            });
-    }
-}
-
-// --- PLATFORM STATS & PRESENCE ---
-const sessionID = Date.now().toString() + Math.random().toString(36).substring(7);
-
-function initStats() {
-    // DO NOT track visits or presence if user is admin (logged in)
-    if (auth.currentUser) {
-        console.log("Admin detected - Stats tracking disabled for this session.");
-        subscribeToStats(); // Still subscribe to see the numbers
-        return;
-    }
-    trackVisit();
-    startHeartbeat();
-}
-
-function trackVisit() {
-    const now = new Date();
-    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const yearKey = `${now.getFullYear()}`;
-
-    // Traffic Source Logic
-    const referrer = document.referrer.toLowerCase();
-    let source = 'direct';
-
-    if (!referrer) {
-        source = 'direct';
-    } else if (referrer.includes('facebook.com') || referrer.includes('fb.me')) {
-        source = 'facebook';
-    } else if (referrer.includes('instagram.com')) {
-        source = 'instagram';
-    } else if (referrer.includes('google.')) {
-        source = 'google';
-    } else if (referrer.includes('tiktok.com')) {
-        source = 'tiktok';
-    } else if (referrer.includes('t.co') || referrer.includes('twitter.com')) {
-        source = 'twitter';
-    } else {
-        source = 'others';
-    }
-
-    const batch = db.batch();
-    batch.set(db.collection('stats').doc('global'), { total: firebase.firestore.FieldValue.increment(1) }, { merge: true });
-    batch.set(db.collection('stats').doc('monthly'), { [monthKey]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
-    batch.set(db.collection('stats').doc('yearly'), { [yearKey]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
-
-    // Store Referrer Stats
-    batch.set(db.collection('stats').doc('referrers'), { [source]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
-
-    batch.commit().catch(e => console.error("Stats Error:", e));
-}
-
-function startHeartbeat() {
-    const presenceRef = db.collection('presence').doc(sessionID);
-    const pulse = () => presenceRef.set({ lastActive: firebase.firestore.Timestamp.now() }, { merge: true });
-    pulse();
-    setInterval(pulse, 30000); // 30 seconds
-    window.addEventListener('beforeunload', () => presenceRef.delete());
-}
-
-function subscribeToStats() {
-    // Real-time online users listener
-    const oneMinAgo = new Date(Date.now() - 60000);
-    db.collection('presence').where('lastActive', '>', oneMinAgo)
-        .onSnapshot(snap => {
-            const el = document.getElementById('stats-online-now');
-            if (el) el.textContent = snap.size || 0;
-        });
-
-    // Monthly/Yearly views listener
-    db.collection('stats').doc('monthly').onSnapshot(doc => {
-        const el = document.getElementById('stats-monthly-views');
-        if (!el) return;
-        if (doc.exists) {
-            const now = new Date();
-            const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            el.textContent = doc.data()[monthKey] || 0;
-        } else {
-            el.textContent = 0;
-        }
-    });
-
-    db.collection('stats').doc('yearly').onSnapshot(doc => {
-        const el = document.getElementById('stats-yearly-views');
-        if (!el) return;
-        if (doc.exists) {
-            const yearKey = `${new Date().getFullYear()}`;
-            el.textContent = doc.data()[yearKey] || 0;
-        } else {
-            el.textContent = 0;
-        }
-    });
-
-    // Referrers Stats Listener
-    db.collection('stats').doc('referrers').onSnapshot(doc => {
-        const list = document.getElementById('admin-referrers-list');
-        if (!list) return;
-
-        if (doc.exists) {
-            const data = doc.data();
-            const total = Object.values(data).reduce((a, b) => a + b, 0) || 1;
-            const sourceLabels = {
-                facebook: { name: 'فيسبوك', color: '#1877F2' },
-                instagram: { name: 'انستقرام', color: '#E4405F' },
-                google: { name: 'جوجل', color: '#4285F4' },
-                tiktok: { name: 'تيك توك', color: '#000000' },
-                twitter: { name: 'تويتر/X', color: '#1DA1F2' },
-                direct: { name: 'دخول مباشر', color: '#00FF94' },
-                others: { name: 'أخرى', color: '#666' }
-            };
-
-            list.innerHTML = Object.entries(data).sort((a, b) => b[1] - a[1]).map(([source, count]) => {
-                const label = sourceLabels[source] || { name: source, color: 'var(--accent-neon)' };
-                const percent = Math.round((count / total) * 100);
-                return `
-                    <div class="referrer-item" style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-stroke); padding: 10px; border-radius: 12px; text-align: center;">
-                        <div style="font-size: 9px; color: ${label.color}; font-weight: 900; margin-bottom: 4px; text-transform: uppercase;">${label.name}</div>
-                        <div style="font-size: 16px; font-weight: 900; color: #fff;">${count}</div>
-                        <div style="font-size: 9px; color: var(--text-muted);">${percent}%</div>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            list.innerHTML = '<div style="font-size: 10px; color: var(--text-muted); grid-column: 1/-1;">لا توجد بيانات بعد...</div>';
-        }
-    });
-}
-
-function showConfirmModal(message) {
-    const modal = document.getElementById('confirm-modal');
-    const msgEl = document.getElementById('confirm-message');
-    const yesBtn = document.getElementById('confirm-yes');
-    const noBtn = document.getElementById('confirm-no');
-
-    if (msgEl) msgEl.textContent = message;
-    modal.style.setProperty('display', 'flex', 'important');
-
-    return new Promise((resolve) => {
-        const handleYes = () => {
-            modal.style.setProperty('display', 'none', 'important');
-            cleanup();
-            resolve(true);
-        };
-        const handleNo = () => {
-            modal.style.setProperty('display', 'none', 'important');
-            cleanup();
-            resolve(false);
-        };
-        const cleanup = () => {
-            yesBtn.removeEventListener('click', handleYes);
-            noBtn.removeEventListener('click', handleNo);
-        };
-
-        yesBtn.addEventListener('click', handleYes);
-        noBtn.addEventListener('click', handleNo);
-    });
-}
-
-function showToast(message) {
-    let toast = document.querySelector('.toast-notification');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.className = 'toast-notification';
-        document.body.appendChild(toast);
-    }
-    toast.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        ${message}
-    `;
-    void toast.offsetWidth;
-    toast.classList.add('show');
-    if (toast.timeoutId) clearTimeout(toast.timeoutId);
-    toast.timeoutId = setTimeout(() => toast.classList.remove('show'), 3000);
-}
-function getYouTubeId(url) {
-    if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-}
-
-// --- MOVIES ADMIN ---
-let adminMoviesSearch = "";
-let adminMoviesTypeFilter = "all";
-let adminMoviesPage = 1;
-const ADMIN_MOVIES_PER_PAGE = 15;
-
-function handleAdminMovieSearch() {
-    adminMoviesSearch = document.getElementById('admin-movie-search').value.toLowerCase();
-    adminMoviesPage = 1; // Reset to page 1 on search
-    renderAdminMovies();
-}
-
-function setAdminMovieFilter(type) {
-    adminMoviesTypeFilter = type;
-    adminMoviesPage = 1; // Reset to page 1 on filter
-
-    // Update active button UI
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    const activeBtnId = type === 'all' ? 'filter-all' : (type === 'movie' ? 'filter-movie' : 'filter-series');
-    document.getElementById(activeBtnId).classList.add('active');
-
-    renderAdminMovies();
-}
-
-function changeAdminPage(page) {
-    adminMoviesPage = page;
-    renderAdminMovies();
-    // Scroll to top of tab
-    document.getElementById('movies-tab').scrollTop = 0;
-}
-
-function renderAdminMovies() {
-    const grid = document.getElementById('admin-movies-grid');
-    const pagination = document.getElementById('admin-movies-pagination');
-    if (!grid) return;
-
-    // 1. Filter
-    let filtered = MOVIES.filter(m => {
-        const matchesType = adminMoviesTypeFilter === 'all' || m.type === adminMoviesTypeFilter;
-        const matchesSearch = !adminMoviesSearch || m.name.toLowerCase().includes(adminMoviesSearch);
-        return matchesType && matchesSearch;
-    });
-
-    // 2. Sort (Newest first by default)
-    filtered.sort((a, b) => (b.order || 0) - (a.order || 0));
-
-    // 3. Pagination
-    const totalItems = filtered.length;
-    const totalPages = Math.ceil(totalItems / ADMIN_MOVIES_PER_PAGE);
-    const start = (adminMoviesPage - 1) * ADMIN_MOVIES_PER_PAGE;
-    const paginatedItems = filtered.slice(start, start + ADMIN_MOVIES_PER_PAGE);
-
-    // 4. Render Grid
-    if (paginatedItems.length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">لا توجد نتائج مطابقة لبحثك</div>';
-    } else {
-        grid.innerHTML = paginatedItems.map((mov) => `
-            <div class="admin-movie-card">
-                <div style="position: relative;">
-                    <img src="${mov.image || 'https://placehold.co/200x300/111/333?text=Kafomnak'}" class="admin-card-image" onerror="this.src='https://placehold.co/200x300/111/333?text=Kafomnak'">
-                    <span style="position: absolute; top: 6px; left: 6px; background: ${mov.type === 'series' ? '#E50914' : '#333'}; color: #fff; padding: 2px 5px; border-radius: 3px; font-size: 8px; font-weight: bold; z-index: 2;">
-                        ${mov.type === 'series' ? 'مسلسل' : 'فيلم'}
-                    </span>
-                    <span style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 5px; border-radius: 3px; font-size: 8px; font-weight: bold; z-index: 2; border: 1px solid rgba(255,255,255,0.1);">
-                        👁️ ${mov.views || 0}
-                    </span>
-                </div>
-                <div class="admin-card-content">
-                    <div class="admin-card-title" title="${mov.name}">${mov.name}</div>
-                    <div class="admin-card-meta">${mov.servers ? mov.servers.length : 0} ${mov.type === 'series' ? 'حلقات' : 'سيرفرات'}</div>
-                </div>
-                <div class="admin-card-actions">
-                    <div class="admin-action-row">
-                        <button class="btn-primary btn-sm btn-edit" onclick="editMovie(${mov.id})">
-                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                             تعديل
-                        </button>
-                        <button class="btn-primary btn-sm btn-danger" onclick="deleteMovie(${mov.id})">
-                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                             حذف
-                        </button>
-                    </div>
-                    <div class="admin-action-row">
-                         <button class="reorder-btn" onclick="moveMovies(${mov.id}, 1)">▲ تقديم</button>
-                         <button class="reorder-btn" onclick="moveMovies(${mov.id}, -1)">▼ تأخير</button>
-                    </div>
-                </div>
             </div>
-        `).join('');
-    }
 
-    // 5. Render Pagination
-    if (totalPages > 1) {
-        let pagesHtml = '';
-        for (let i = 1; i <= totalPages; i++) {
-            pagesHtml += `<button class="pagination-btn ${i === adminMoviesPage ? 'active' : ''}" onclick="changeAdminPage(${i})">${i}</button>`;
-        }
-        pagination.innerHTML = pagesHtml;
-    } else {
-        pagination.innerHTML = '';
-    }
-}
+            <div id="contact-form-section"
+                style="margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--glass-stroke);">
+                <h3 style="color: var(--accent-neon); font-size: 15px; margin-bottom: 15px; text-align: right;">أو أرسل
+                    رسالة مباشرة</h3>
+                <form id="support-contact-form" onsubmit="sendSupportEmail(event)">
+                    <div class="input-group">
+                        <label>الاسم</label>
+                        <input type="text" id="contact-form-name" placeholder="اسمك" required>
+                    </div>
+                    <div class="input-group">
+                        <label>بريدك الإلكتروني</label>
+                        <input type="email" id="contact-form-email" placeholder="example@email.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>الرسالة</label>
+                        <textarea id="contact-form-message" placeholder="اكتب رسالتك هنا..." rows="4" required
+                            style="width: 100%; padding: 12px; background: rgba(255,255,255,0.03); border: 2px solid var(--glass-stroke); border-radius: 14px; color: white; font-size: 14px; resize: vertical; font-family: inherit;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">إرسال الرسالة</button>
+                </form>
+            </div>
 
-async function moveMovies(id, direction) {
-    if (!auth.currentUser) return;
-    const index = MOVIES.findIndex(c => c.id == id);
-    if (index === -1) return;
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= MOVIES.length) return;
-
-    const items = [...MOVIES];
-    const [movedItem] = items.splice(index, 1);
-    items.splice(newIndex, 0, movedItem);
-
-    showToast('جاري الترتيب...');
-    try {
-        const batch = db.batch();
-        items.forEach((ch, idx) => {
-            const ref = db.collection('movies').doc(String(ch.id));
-            batch.update(ref, { order: idx });
-        });
-        await batch.commit();
-        showToast('تم الترتيب بنجاح');
-    } catch (e) {
-        showToast('خطأ في الترتيب');
-    }
-}
-
-function addMoviesServerInputRow(name = "", url = "", audioUrl = "", type = "hls") {
-    const container = document.getElementById('movies-server-inputs-container');
-    const row = document.createElement('div');
-    row.className = 'server-row-v2';
-    row.setAttribute('data-server-type', type);
-    row.innerHTML = `
-        <div class="server-row-header">
-            <span class="server-drag-handle">☰</span>
-            <select class="srv-type" onchange="toggleAudioField(this)">
-                <option value="hls" ${type === 'hls' ? 'selected' : ''}>بث مباشر (HLS)</option>
-                <option value="iframe" ${type === 'iframe' ? 'selected' : ''}>تضمين (Iframe)</option>
-            </select>
-            <button class="remove-srv-btn" onclick="this.closest('.server-row-v2').remove()">✕</button>
+            <button class="btn-primary btn-outline" style="margin-top: 25px; width: 100%;"
+                onclick="document.getElementById('support-modal').style.display='none'">إغلاق</button>
         </div>
-        <div class="server-row-body">
-            <div class="field-group">
-                <label>اسم السيرفر</label>
-                <input type="text" placeholder="مثال: الرئيسية" value="${name}" class="srv-name" required>
-            </div>
-            <div class="field-group" style="flex: 2;">
-                <label>رابط الفيديو</label>
-                <input type="text" placeholder="رابط m3u8 أو رابط التضمين" value="${url}" class="srv-url">
-            </div>
-            <div class="field-group hls-only-field" style="flex: 2;">
-                <label>رابط الصوت (اختياري)</label>
-                <input type="text" placeholder="رابط m3u8 الخاص بالصوت" value="${audioUrl}" class="srv-audio-url">
-            </div>
-        </div>
-    `;
-    container.appendChild(row);
-}
+    </div>
 
-function toggleMovieTypeLabels() {
-    const type = document.getElementById('movies-type').value;
-    const label = document.getElementById('movies-servers-label');
-    const btn = document.getElementById('add-server-btn');
 
-    if (label) {
-        if (type === 'series') {
-            label.textContent = 'الحلقات وروابطها';
-        } else {
-            label.textContent = 'السيرفرات والروابط';
-        }
-    }
 
-    if (btn) {
-        if (type === 'series') {
-            btn.textContent = '+ إضافة حلقة أخرى';
-        } else {
-            btn.textContent = '+ إضافة سيرفر آخر';
-        }
-    }
-}
+    <!-- Scripts -->
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-function showMoviesForm() {
-    document.getElementById('movies-modal-overlay').style.display = 'flex';
-    document.getElementById('movies-form').style.display = 'flex';
-    document.getElementById('movies-form-title').textContent = 'إضافة محتوى جديد';
-    document.getElementById('movies-edit-id').value = '';
-    document.getElementById('movies-type').value = 'movie'; // Default
-    toggleMovieTypeLabels();
-    document.getElementById('movies-name').value = '';
-    document.getElementById('movies-image').value = '';
-    document.getElementById('movies-note').value = '';
-    document.getElementById('movies-popup-note').value = '';
-    document.getElementById('movies-genre').value = '';
-    document.getElementById('movies-desc').value = '';
-    document.getElementById('movies-server-inputs-container').innerHTML = '';
-    addMoviesServerInputRow();
-}
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <script src="script.js"></script>
 
-function hideMoviesForm() {
-    document.getElementById('movies-modal-overlay').style.display = 'none';
-    document.getElementById('movies-form').style.display = 'none';
-}
+</body>
 
-function closeAdminModalOnClickOutside(event, modalId) {
-    if (event.target.id === modalId) {
-        if (modalId === 'movies-modal-overlay') hideMoviesForm();
-    }
-}
-
-function saveMovie() {
-    if (!auth.currentUser) return;
-    const id = document.getElementById('movies-edit-id').value || Date.now();
-    const type = document.getElementById('movies-type').value;
-    const name = document.getElementById('movies-name').value;
-    const image = document.getElementById('movies-image').value;
-    const note = document.getElementById('movies-note').value;
-    const popupNote = document.getElementById('movies-popup-note').value;
-    const genre = document.getElementById('movies-genre').value;
-    const description = document.getElementById('movies-desc').value;
-    const serverRows = document.querySelectorAll('#movies-server-inputs-container .server-row-v2');
-    const servers = [];
-    serverRows.forEach(row => {
-        const sName = row.querySelector('.srv-name').value;
-        const sUrl = row.querySelector('.srv-url').value;
-        const sAudioUrl = row.querySelector('.srv-audio-url').value;
-        const sType = row.querySelector('.srv-type').value;
-
-        let finalUrl = sUrl;
-        if (sType === 'iframe' && sUrl && !sUrl.startsWith('http')) {
-            finalUrl = sUrl;
-        } else if (sType === 'iframe' && sUrl) {
-            finalUrl = obfuscate(sUrl);
-        }
-
-        if (sName) servers.push({ name: sName, url: finalUrl, audioUrl: sAudioUrl, type: sType });
-    });
-
-    if (!name) return alert('يرجى ملء البيانات');
-
-    let order = Number(id);
-    if (document.getElementById('movies-edit-id').value) {
-        const existing = MOVIES.find(c => c.id == id);
-        if (existing && existing.order !== undefined) order = existing.order;
-    }
-
-    // Allow empty servers for 'Coming Soon' state
-    const data = {
-        id: Number(id),
-        type,
-        name,
-        image,
-        servers,
-        order,
-        note,
-        popupNote,
-        genre,
-        description,
-        updatedAt: Date.now()
-    };
-    db.collection('movies').doc(String(id)).set(data, { merge: true })
-        .then(() => {
-            showToast('تم الحفظ بنجاح');
-            hideMoviesForm();
-
-            // Request Indexing (Background)
-            // Using absolute URL to support cross-origin requests from GitHub Pages
-            fetch('https://kafotv.netlify.app/.netlify/functions/indexing', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: `https://kafotv.github.io/movies.html?id=${id}` })
-            })
-                .then(res => res.json())
-                .then(d => console.log('Indexing triggered:', d))
-                .catch(err => console.error('Indexing failed:', err));
-        })
-        .catch(e => {
-            console.error("Movies Save Error:", e);
-            showToast('خطأ في الحفظ: ' + translateError(e));
-        });
-}
-
-function editMovie(id) {
-    const mov = MOVIES.find(c => c.id == id);
-    if (!mov) return;
-    document.getElementById('movies-edit-id').value = mov.id;
-    document.getElementById('movies-modal-overlay').style.display = 'flex';
-    document.getElementById('movies-form').style.display = 'flex';
-    document.getElementById('movies-form-title').textContent = 'تعديل: ' + mov.name;
-    document.getElementById('movies-type').value = mov.type || 'movie';
-    toggleMovieTypeLabels();
-    document.getElementById('movies-name').value = mov.name;
-    document.getElementById('movies-image').value = mov.image || '';
-    document.getElementById('movies-note').value = mov.note || '';
-    document.getElementById('movies-popup-note').value = mov.popupNote || '';
-    document.getElementById('movies-genre').value = mov.genre || '';
-    document.getElementById('movies-desc').value = mov.description || '';
-    const container = document.getElementById('movies-server-inputs-container');
-    container.innerHTML = '';
-    if (mov.servers) {
-        mov.servers.forEach(s => {
-            const realUrl = s.type === 'iframe' ? deobfuscate(s.url) : s.url;
-            addMoviesServerInputRow(s.name, realUrl, s.audioUrl || "", s.type || "hls");
-        });
-    } else {
-        addMoviesServerInputRow();
-    }
-}
-
-async function deleteMovie(id) {
-    if (!auth.currentUser) return;
-    showToast('جاري التحقق من الحذف...');
-    const confirmed = await showConfirmModal('هل أنت متأكد من حذف هذا الفيلم/المسلسل؟');
-    if (confirmed) {
-        db.collection('movies').doc(String(id)).delete();
-    }
-}
+</html>
