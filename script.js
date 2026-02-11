@@ -1854,7 +1854,20 @@ function saveMovie() {
         updatedAt: Date.now()
     };
     db.collection('movies').doc(String(id)).set(data, { merge: true })
-        .then(() => { showToast('تم الحفظ بنجاح'); hideMoviesForm(); })
+        .then(() => {
+            showToast('تم الحفظ بنجاح');
+            hideMoviesForm();
+
+            // Request Indexing (Background)
+            fetch('/.netlify/functions/indexing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: `https://kafotv.github.io/movies.html?id=${id}` })
+            })
+                .then(res => res.json())
+                .then(d => console.log('Indexing triggered:', d))
+                .catch(err => console.error('Indexing failed:', err));
+        })
         .catch(e => {
             console.error("Movies Save Error:", e);
             showToast('خطأ في الحفظ: ' + translateError(e));
