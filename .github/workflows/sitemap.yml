@@ -40,3 +40,22 @@ jobs:
           git commit -m "Automated sitemap update"
           git push
         fi
+
+    - name: Ping IndexNow (Bing & Yandex)
+      run: |
+        curl -X POST "https://api.indexnow.org/indexnow" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "host": "kafotv.github.io",
+            "key": "4ffa22697a14486f96cbe887dda5ebbe",
+            "keyLocation": "https://kafotv.github.io/4ffa22697a14486f96cbe887dda5ebbe.txt",
+            "urlList": [
+              "https://kafotv.github.io/",
+              "https://kafotv.github.io/movies.html",
+              "https://kafotv.github.io/kids.html"
+            ]
+          }'
+
+    - name: Ping Google
+      run: |
+        curl "https://www.google.com/ping?sitemap=https://kafotv.github.io/sitemap.xml"
