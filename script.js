@@ -445,7 +445,7 @@ function injectBranding() {
         const branding = document.createElement('div');
         branding.className = 'plyr-branding';
         branding.innerHTML = `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-16a2 2 0 0 1-2-2v-2"></path>
                 <path d="M2 12h10"></path>
                 <path d="m9 15 3-3-3-3"></path>
@@ -948,10 +948,12 @@ function savePlatformSettings() {
     const whatsapp = document.getElementById('contact-whatsapp').value;
     const facebook = document.getElementById('contact-facebook').value;
     const instagram = document.getElementById('contact-instagram').value;
+    const showRamadanSection = document.getElementById('site-show-ramadan').checked;
 
     const settings = {
         statusText,
         siteTitle,
+        showRamadanSection,
         contact: {
             whatsapp,
             facebook,
@@ -1005,6 +1007,11 @@ function applyPlatformSettings(settings) {
         if (document.getElementById('contact-facebook')) document.getElementById('contact-facebook').value = settings.contact.facebook || "";
         if (document.getElementById('contact-instagram')) document.getElementById('contact-instagram').value = settings.contact.instagram || "";
 
+    }
+
+    // Populate Ramadan Toggle
+    if (document.getElementById('site-show-ramadan')) {
+        document.getElementById('site-show-ramadan').checked = settings.showRamadanSection || false;
     }
 
     // Ad Management Sync
@@ -1231,7 +1238,7 @@ function renderAdminAds() {
                 </div>
             </div>
             <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between;">
-                <span>الهدف: ${ad.target === 'all' ? 'الكل' : ad.target === 'main' ? 'الرئيسي' : 'الأطفال'}</span>
+                <span>الهدف: ${ad.target === 'all' ? 'الكل' : ad.target === 'main' ? 'الرئيسي' : ad.target === 'movies' ? 'الأفلام' : 'الأطفال'}</span>
                 <span style="color: var(--accent-neon); font-weight: 900;">🔥 ${Object.values(ad.item_clicks || {}).reduce((a, b) => a + Number(b), 0) || ad.clicks || 0} نقرة</span>
             </div>
             ${(ad.type === 'slider' || ad.type === 'dual' || ad.type === 'triple') ? `
@@ -1587,39 +1594,106 @@ function getYouTubeId(url) {
 }
 
 // --- MOVIES ADMIN ---
+let adminMoviesSearch = "";
+let adminMoviesTypeFilter = "all";
+let adminMoviesPage = 1;
+const ADMIN_MOVIES_PER_PAGE = 15;
+
+function handleAdminMovieSearch() {
+    adminMoviesSearch = document.getElementById('admin-movie-search').value.toLowerCase();
+    adminMoviesPage = 1; // Reset to page 1 on search
+    renderAdminMovies();
+}
+
+function setAdminMovieFilter(type) {
+    adminMoviesTypeFilter = type;
+    adminMoviesPage = 1; // Reset to page 1 on filter
+
+    // Update active button UI
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtnId = type === 'all' ? 'filter-all' : (type === 'movie' ? 'filter-movie' : 'filter-series');
+    document.getElementById(activeBtnId).classList.add('active');
+
+    renderAdminMovies();
+}
+
+function changeAdminPage(page) {
+    adminMoviesPage = page;
+    renderAdminMovies();
+    // Scroll to top of tab
+    document.getElementById('movies-tab').scrollTop = 0;
+}
 
 function renderAdminMovies() {
-    const list = document.getElementById('admin-movies-list');
-    if (!list) return;
-    list.innerHTML = MOVIES.map((mov) => `
-        <tr>
-            <td class="channel-name-cell">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="row-reorder-btns">
-                        <button class="reorder-btn"  onclick="moveMovies(${mov.id}, -1)">▲</button>
-                        <button class="reorder-btn"  onclick="moveMovies(${mov.id}, 1)">▼</button>
+    const grid = document.getElementById('admin-movies-grid');
+    const pagination = document.getElementById('admin-movies-pagination');
+    if (!grid) return;
+
+    // 1. Filter
+    let filtered = MOVIES.filter(m => {
+        const matchesType = adminMoviesTypeFilter === 'all' || m.type === adminMoviesTypeFilter;
+        const matchesSearch = !adminMoviesSearch || m.name.toLowerCase().includes(adminMoviesSearch);
+        return matchesType && matchesSearch;
+    });
+
+    // 2. Sort (Newest first by default)
+    filtered.sort((a, b) => (b.order || 0) - (a.order || 0));
+
+    // 3. Pagination
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / ADMIN_MOVIES_PER_PAGE);
+    const start = (adminMoviesPage - 1) * ADMIN_MOVIES_PER_PAGE;
+    const paginatedItems = filtered.slice(start, start + ADMIN_MOVIES_PER_PAGE);
+
+    // 4. Render Grid
+    if (paginatedItems.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">لا توجد نتائج مطابقة لبحثك</div>';
+    } else {
+        grid.innerHTML = paginatedItems.map((mov) => `
+            <div class="admin-movie-card">
+                <div style="position: relative;">
+                    <img src="${mov.image || 'https://placehold.co/200x300/111/333?text=Kafomnak'}" class="admin-card-image" onerror="this.src='https://placehold.co/200x300/111/333?text=Kafomnak'">
+                    <span style="position: absolute; top: 6px; left: 6px; background: ${mov.type === 'series' ? '#E50914' : '#333'}; color: #fff; padding: 2px 5px; border-radius: 3px; font-size: 8px; font-weight: bold; z-index: 2;">
+                        ${mov.type === 'series' ? 'مسلسل' : 'فيلم'}
+                    </span>
+                    <span style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 5px; border-radius: 3px; font-size: 8px; font-weight: bold; z-index: 2; border: 1px solid rgba(255,255,255,0.1);">
+                        👁️ ${mov.views || 0}
+                    </span>
+                </div>
+                <div class="admin-card-content">
+                    <div class="admin-card-title" title="${mov.name}">${mov.name}</div>
+                    <div class="admin-card-meta">${mov.servers ? mov.servers.length : 0} ${mov.type === 'series' ? 'حلقات' : 'سيرفرات'}</div>
+                </div>
+                <div class="admin-card-actions">
+                    <div class="admin-action-row">
+                        <button class="btn-primary btn-sm btn-edit" onclick="editMovie(${mov.id})">
+                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                             تعديل
+                        </button>
+                        <button class="btn-primary btn-sm btn-danger" onclick="deleteMovie(${mov.id})">
+                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                             حذف
+                        </button>
                     </div>
-                    ${mov.image ? `<img src="${mov.image}" style="width: 30px; height: 45px; object-fit: cover; border-radius: 4px;">` : ''}
-                    <div>
-                        <div style="font-weight: bold;">
-                            <span style="display:inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; background: ${mov.type === 'series' ? '#E50914' : '#333'}; margin-left: 5px;">
-                                ${mov.type === 'series' ? 'مسلسل' : 'فيلم'}
-                            </span>
-                            ${mov.name}
-                        </div>
-                        <div style="font-size: 10px; color: var(--text-muted);">${mov.note || ''}</div>
+                    <div class="admin-action-row">
+                         <button class="reorder-btn" onclick="moveMovies(${mov.id}, 1)">▲ تقديم</button>
+                         <button class="reorder-btn" onclick="moveMovies(${mov.id}, -1)">▼ تأخير</button>
                     </div>
                 </div>
-            </td>
-            <td><span class="server-count-badge">${mov.servers ? mov.servers.length : 0} ${mov.type === 'series' ? 'حلقات' : 'سيرفرات'}</span></td>
-            <td>
-                <div class="action-btns">
-                    <button class="btn-primary btn-sm btn-edit" onclick="editMovie(${mov.id})">تعديل</button>
-                    <button class="btn-primary btn-sm btn-danger" onclick="deleteMovie(${mov.id})">حذف</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+            </div>
+        `).join('');
+    }
+
+    // 5. Render Pagination
+    if (totalPages > 1) {
+        let pagesHtml = '';
+        for (let i = 1; i <= totalPages; i++) {
+            pagesHtml += `<button class="pagination-btn ${i === adminMoviesPage ? 'active' : ''}" onclick="changeAdminPage(${i})">${i}</button>`;
+        }
+        pagination.innerHTML = pagesHtml;
+    } else {
+        pagination.innerHTML = '';
+    }
 }
 
 async function moveMovies(id, direction) {
@@ -1668,7 +1742,7 @@ function addMoviesServerInputRow(name = "", url = "", audioUrl = "", type = "hls
             </div>
             <div class="field-group" style="flex: 2;">
                 <label>رابط الفيديو</label>
-                <input type="text" placeholder="رابط m3u8 أو رابط التضمين" value="${url}" class="srv-url" required>
+                <input type="text" placeholder="رابط m3u8 أو رابط التضمين" value="${url}" class="srv-url">
             </div>
             <div class="field-group hls-only-field" style="flex: 2;">
                 <label>رابط الصوت (اختياري)</label>
@@ -1702,13 +1776,16 @@ function toggleMovieTypeLabels() {
 }
 
 function showMoviesForm() {
-    document.getElementById('movies-form').style.display = 'block';
+    document.getElementById('movies-modal-overlay').style.display = 'flex';
+    document.getElementById('movies-form').style.display = 'flex';
+    document.getElementById('movies-form-title').textContent = 'إضافة محتوى جديد';
     document.getElementById('movies-edit-id').value = '';
     document.getElementById('movies-type').value = 'movie'; // Default
     toggleMovieTypeLabels();
     document.getElementById('movies-name').value = '';
     document.getElementById('movies-image').value = '';
     document.getElementById('movies-note').value = '';
+    document.getElementById('movies-popup-note').value = '';
     document.getElementById('movies-genre').value = '';
     document.getElementById('movies-desc').value = '';
     document.getElementById('movies-server-inputs-container').innerHTML = '';
@@ -1716,7 +1793,14 @@ function showMoviesForm() {
 }
 
 function hideMoviesForm() {
+    document.getElementById('movies-modal-overlay').style.display = 'none';
     document.getElementById('movies-form').style.display = 'none';
+}
+
+function closeAdminModalOnClickOutside(event, modalId) {
+    if (event.target.id === modalId) {
+        if (modalId === 'movies-modal-overlay') hideMoviesForm();
+    }
 }
 
 function saveMovie() {
@@ -1726,6 +1810,7 @@ function saveMovie() {
     const name = document.getElementById('movies-name').value;
     const image = document.getElementById('movies-image').value;
     const note = document.getElementById('movies-note').value;
+    const popupNote = document.getElementById('movies-popup-note').value;
     const genre = document.getElementById('movies-genre').value;
     const description = document.getElementById('movies-desc').value;
     const serverRows = document.querySelectorAll('#movies-server-inputs-container .server-row-v2');
@@ -1743,10 +1828,10 @@ function saveMovie() {
             finalUrl = obfuscate(sUrl);
         }
 
-        if (sName && sUrl) servers.push({ name: sName, url: finalUrl, audioUrl: sAudioUrl, type: sType });
+        if (sName) servers.push({ name: sName, url: finalUrl, audioUrl: sAudioUrl, type: sType });
     });
 
-    if (!name || servers.length === 0) return alert('يرجى ملء البيانات');
+    if (!name) return alert('يرجى ملء البيانات');
 
     let order = Number(id);
     if (document.getElementById('movies-edit-id').value) {
@@ -1754,6 +1839,7 @@ function saveMovie() {
         if (existing && existing.order !== undefined) order = existing.order;
     }
 
+    // Allow empty servers for 'Coming Soon' state
     const data = {
         id: Number(id),
         type,
@@ -1762,6 +1848,7 @@ function saveMovie() {
         servers,
         order,
         note,
+        popupNote,
         genre,
         description,
         updatedAt: Date.now()
@@ -1778,11 +1865,15 @@ function editMovie(id) {
     const mov = MOVIES.find(c => c.id == id);
     if (!mov) return;
     document.getElementById('movies-edit-id').value = mov.id;
+    document.getElementById('movies-modal-overlay').style.display = 'flex';
+    document.getElementById('movies-form').style.display = 'flex';
+    document.getElementById('movies-form-title').textContent = 'تعديل: ' + mov.name;
     document.getElementById('movies-type').value = mov.type || 'movie';
     toggleMovieTypeLabels();
     document.getElementById('movies-name').value = mov.name;
     document.getElementById('movies-image').value = mov.image || '';
     document.getElementById('movies-note').value = mov.note || '';
+    document.getElementById('movies-popup-note').value = mov.popupNote || '';
     document.getElementById('movies-genre').value = mov.genre || '';
     document.getElementById('movies-desc').value = mov.description || '';
     const container = document.getElementById('movies-server-inputs-container');
@@ -1795,7 +1886,6 @@ function editMovie(id) {
     } else {
         addMoviesServerInputRow();
     }
-    document.getElementById('movies-form').style.display = 'block';
 }
 
 async function deleteMovie(id) {
