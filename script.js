@@ -1859,7 +1859,7 @@ function saveMovie() {
             hideMoviesForm();
 
             // Request Indexing (Background)
-            fetch('/.netlify/functions/indexing', {
+            fetch('https://kafotv.netlify.app/.netlify/functions/indexing', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url: `https://kafotv.github.io/movies.html?id=${id}` })
