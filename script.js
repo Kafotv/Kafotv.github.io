@@ -395,7 +395,7 @@ function loadStream(url, audioUrl = "", type = "hls") {
         video.id = 'player';
         video.playsInline = true;
         video.autoplay = true;
-        video.muted = true;
+        video.muted = false; // Enable audio by default
         video.controls = true;
         video.crossOrigin = 'anonymous';
         container.appendChild(video);
@@ -430,7 +430,7 @@ function loadStream(url, audioUrl = "", type = "hls") {
 function getPlyrConfig() {
     return {
         autoplay: true,
-        muted: true,
+        muted: false, // Enable audio by default
         controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
         i18n: { play: 'تشغيل', pause: 'إيقاف', mute: 'كتم', settings: 'إعدادات' },
         youtube: { noCookie: true, rel: 0, modestbranding: 1, iv_load_policy: 3, autoplay: 1, mute: 1 }
