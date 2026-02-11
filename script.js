@@ -1859,6 +1859,7 @@ function saveMovie() {
             hideMoviesForm();
 
             // Request Indexing (Background)
+            // Using absolute URL to support cross-origin requests from GitHub Pages
             fetch('https://kafotv.netlify.app/.netlify/functions/indexing', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
