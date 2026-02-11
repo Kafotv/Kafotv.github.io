@@ -1,0 +1,8 @@
+{
+    "name": "netlify-functions",
+    "version": "1.0.0",
+    "description": "Netlify Functions for Kafomnak",
+    "dependencies": {
+        "googleapis": "^134.0.0"
+    }
+}
