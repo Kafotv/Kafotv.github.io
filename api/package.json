@@ -1,0 +1,8 @@
+{
+    "name": "kafomnak-indexing-api",
+    "version": "1.0.0",
+    "description": "Serverless function for Google Indexing API",
+    "dependencies": {
+        "googleapis": "^134.0.0"
+    }
+}
