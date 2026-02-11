@@ -1,0 +1,8 @@
+{
+    "name": "kafomnak-site",
+    "version": "1.0.0",
+    "description": "Kafomnak Website",
+    "dependencies": {
+        "googleapis": "^134.0.0"
+    }
+}
