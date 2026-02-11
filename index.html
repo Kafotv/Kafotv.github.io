@@ -480,73 +480,120 @@
                         onclick="showMoviesForm()">إضافة فيلم/مسلسل +</button>
                 </div>
 
-                <div id="movies-form"
-                    style="display: none; margin-bottom: 30px; padding: 25px; background: rgba(229, 9, 20, 0.05); border-radius: 16px; border: 1px solid rgba(229, 9, 20, 0.2);">
-                    <input type="hidden" id="movies-edit-id">
+                <!-- Movie Add/Edit Modal Overlay -->
+                <div id="movies-modal-overlay" class="admin-modal-overlay"
+                    onclick="closeAdminModalOnClickOutside(event, 'movies-modal-overlay')">
+                    <div id="movies-form" class="admin-modal-content"
+                        style="display: none; background: #111; border: 1px solid rgba(229, 9, 20, 0.2); box-shadow: 0 0 30px rgba(0,0,0,0.5);">
+                        <div class="modal-header-v2"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 15px;">
+                            <h3 id="movies-form-title" style="margin: 0; color: #E50914;">إضافة محتوى جديد</h3>
+                            <button class="close-modal-btn-v2" onclick="hideMoviesForm()"
+                                style="background: none; border: none; color: #666; cursor: pointer;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <input type="hidden" id="movies-edit-id">
 
-                    <div class="input-group">
-                        <label>نوع المحتوى</label>
-                        <select id="movies-type" onchange="toggleMovieTypeLabels()"
-                            style="background: #111; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
-                            <option value="movie">فيلم</option>
-                            <option value="series">مسلسل</option>
-                        </select>
-                    </div>
+                        <div class="admin-modal-scroll-area">
+                            <div class="input-group">
+                                <label>نوع المحتوى</label>
+                                <select id="movies-type" onchange="toggleMovieTypeLabels()"
+                                    style="background: #080808; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+                                    <option value="movie">فيلم</option>
+                                    <option value="series">مسلسل</option>
+                                </select>
+                            </div>
 
-                    <div class="input-group">
-                        <label>اسم الفيلم / المسلسل</label>
-                        <input type="text" id="movies-name" placeholder="اسم الفيلم">
-                    </div>
-                    <div class="input-group">
-                        <label>صورة الغلاف (رابط الصورة)</label>
-                        <input type="text" id="movies-image" placeholder="https://example.com/poster.jpg">
-                    </div>
-                    <div class="input-group">
-                        <label>ملاحظة (سنة الإنتاج / ملاحظة قصيرة)</label>
-                        <input type="text" id="movies-note" placeholder="2024 - مترجم">
-                    </div>
-                    <div class="input-group">
-                        <label>تصنيف الفيلم (أكشن، دراما، إلخ...)</label>
-                        <input type="text" id="movies-genre" placeholder="مثال: أكشن، دراما">
-                    </div>
-                    <div class="input-group">
-                        <label>وصف (قصة العمل)</label>
-                        <textarea id="movies-desc" placeholder="اكتب نبذة عن القصة..."
-                            style="width: 100%; height: 80px; background: #111; border: 1px solid #333; color: #fff; border-radius: 8px; padding: 10px;"></textarea>
-                    </div>
+                            <div class="input-group">
+                                <label>اسم الفيلم / المسلسل</label>
+                                <input type="text" id="movies-name" placeholder="اسم الفيلم">
+                            </div>
+                            <div class="input-group">
+                                <label>صورة الغلاف (رابط الصورة)</label>
+                                <input type="text" id="movies-image" placeholder="https://example.com/poster.jpg">
+                            </div>
+                            <div class="input-group">
+                                <label>ملاحظة (سنة الإنتاج / ملاحظة قصيرة)</label>
+                                <input type="text" id="movies-note" placeholder="2024 - مترجم">
+                            </div>
+                            <div class="input-group">
+                                <label>ملاحظة المنبثقة (تظهر داخل المشغل)</label>
+                                <input type="text" id="movies-popup-note"
+                                    placeholder="مثال: يرجى الانتظار قليلاً للتحميل...">
+                            </div>
+                            <div class="input-group">
+                                <label>تصنيف الفيلم (أكشن، دراما، إلخ...)</label>
+                                <input type="text" id="movies-genre" placeholder="مثال: أكشن، دراما">
+                            </div>
 
-                    <div id="movies-server-inputs-container">
-                        <label id="movies-servers-label"
-                            style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 800;">السيرفرات
-                            والروابط</label>
-                        <!-- Row templates injected here -->
-                    </div>
+                            <div class="input-group">
+                                <label>وصف (قصة العمل)</label>
+                                <textarea id="movies-desc" placeholder="اكتب نبذة عن القصة..."
+                                    style="width: 100%; height: 80px; background: #080808; border: 1px solid #333; color: #fff; border-radius: 8px; padding: 10px;"></textarea>
+                            </div>
 
-                    <button id="add-server-btn" class="btn-primary btn-outline btn-sm"
-                        style="margin-bottom: 20px; width: auto;" onclick="addMoviesServerInputRow()">+ إضافة سيرفر
-                        آخر</button>
+                            <div id="movies-server-inputs-container">
+                                <label id="movies-servers-label"
+                                    style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 800;">السيرفرات
+                                    والروابط</label>
+                                <!-- Row templates injected here -->
+                            </div>
 
-                    <div style="display: flex; gap: 15px;">
-                        <button class="btn-primary" style="flex: 1; background: #E50914;" onclick="saveMovie()">حفظ
-                            المحتوى</button>
-                        <button class="btn-primary btn-outline" style="flex: 1;"
-                            onclick="hideMoviesForm()">إلغاء</button>
+                            <button id="add-server-btn" class="btn-primary btn-outline btn-sm"
+                                style="margin-bottom: 20px; width: auto;" onclick="addMoviesServerInputRow()">+ إضافة
+                                سيرفر
+                                آخر</button>
+                        </div>
+
+                        <div class="modal-footer-v2"
+                            style="display: flex; gap: 15px; margin-top: 20px; border-top: 1px solid #222; padding-top: 15px;">
+                            <button class="btn-primary" style="flex: 1; background: #E50914;" onclick="saveMovie()">حفظ
+                                المحتوى</button>
+                            <button class="btn-primary btn-outline" style="flex: 1;"
+                                onclick="hideMoviesForm()">إلغاء</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="admin-table-container">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>الاسم</th>
-                                <th>السيرفرات</th>
-                                <th style="text-align: left;">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-movies-list">
-                        </tbody>
-                    </table>
+                <!-- Search and Filters -->
+                <div class="admin-controls-bar"
+                    style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; background: rgba(229, 9, 20, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(229, 9, 20, 0.1);">
+                    <div style="flex: 1; min-width: 250px; position: relative;">
+                        <input type="text" id="admin-movie-search" placeholder="بحث عن فيلم أو مسلسل..."
+                            style="width: 100%; padding: 10px 40px 10px 15px; background: #111; border: 1px solid #333; color: #fff; border-radius: 8px;"
+                            oninput="handleAdminMovieSearch()">
+                        <svg style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #666;"
+                            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+
+                    <div class="filter-buttons" style="display: flex; gap: 8px;">
+                        <button class="filter-btn active" id="filter-all"
+                            onclick="setAdminMovieFilter('all')">الكل</button>
+                        <button class="filter-btn" id="filter-movie"
+                            onclick="setAdminMovieFilter('movie')">الأفلام</button>
+                        <button class="filter-btn" id="filter-series"
+                            onclick="setAdminMovieFilter('series')">المسلسلات</button>
+                    </div>
                 </div>
+
+                <div id="admin-movies-grid" class="admin-movies-grid">
+                    <!-- Cards injected here -->
+                </div>
+
+                <div id="admin-movies-pagination" class="pagination-container"
+                    style="margin-top: 30px; display: flex; justify-content: center; gap: 8px;">
+                    <!-- Pagination buttons injected here -->
+                </div>
+
             </div>
 
             <!-- Ad Management Tab -->
@@ -597,6 +644,7 @@
                                 <option value="all">في كل مكان</option>
                                 <option value="main">الموقع الرئيسي فقط</option>
                                 <option value="kids">قسم الأطفال فقط</option>
+                                <option value="movies">قسم الأفلام فقط</option>
                             </select>
                         </div>
                     </div>
@@ -644,8 +692,7 @@
                 </div>
 
                 <!-- Ad Cards List -->
-                <div id="admin-ad-list"
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                <div id="admin-ad-list" style="display: grid; grid-template-columns: repeat(3, 1fr);; gap: 20px;">
                     <!-- Ad cards injected here -->
                 </div>
             </div>
@@ -664,6 +711,24 @@
                     <div class="input-group">
                         <label>عنوان الموقع</label>
                         <input type="text" id="site-title" placeholder="كفومنك">
+                    </div>
+
+                    <div class="input-group"
+                        style="margin-top: 15px; background: rgba(0, 255, 148, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(0, 255, 148, 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 20px;">🌙</span>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 900; color: #fff;">قسم رمضان يجمعنا</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">إظهار أو إخفاء قسم رمضان
+                                        بالكامل من الموقع</div>
+                                </div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="site-show-ramadan">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
 
                     <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--glass-stroke);">
