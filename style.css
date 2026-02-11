@@ -477,17 +477,6 @@ header {
         gap: 1px;
         font-size: 6px;
     }
-    .server-switcher {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-shrink: 0;
-    padding: 10px 0;
-    flex-wrap: wrap;
-        crollbar-width: thin;
-        background: rgba(255, 255, 255, 0.02);
-}
-    
 }
 
 /* In-Player Branding */
@@ -810,9 +799,70 @@ header {
     transition: var(--transition-premium);
 }
 
+#movies-popup-note {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
 .input-group input:focus {
     border-color: var(--accent-neon);
     background: rgba(0, 255, 163, 0.02);
+}
+
+/* Toggle Switch Styling */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: .4s;
+    border: 1px solid var(--glass-stroke);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-neon);
+    border-color: var(--accent-neon);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
 }
 
 .server-row-v2 {
@@ -1629,3 +1679,244 @@ footer {
     }
 }
 
+/* Admin Movie Grid & Card Styles */
+.admin-movies-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.admin-movie-card {
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.admin-movie-card:hover {
+    border-color: #E50914;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.admin-card-image {
+    width: 100%;
+    aspect-ratio: 2/2.8;
+    object-fit: cover;
+    border-bottom: 1px solid #222;
+}
+
+.admin-card-content {
+    padding: 8px;
+    flex-grow: 1;
+}
+
+.admin-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #eee;
+}
+
+.admin-card-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.admin-card-actions {
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-action-row {
+    display: flex;
+    gap: 4px;
+}
+
+.admin-card-actions button {
+    flex: 1;
+    padding: 6px 4px !important;
+    font-size: 10px !important;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 30px;
+}
+
+.pagination-btn {
+    min-width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+.pagination-btn.active {
+    background: #E50914;
+    border-color: #E50914;
+}
+
+.pagination-btn:hover:not(.active) {
+    border-color: #E50914;
+    color: #E50914;
+}
+
+/* Filter Buttons */
+.filter-btn {
+    padding: 8px 16px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.filter-btn.active {
+    background: #E50914;
+    border-color: #E50914;
+}
+
+@media (max-width: 1200px) {
+    .admin-movies-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-movies-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-movies-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Admin Modal Styles */
+.admin-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: adminFadeIn 0.3s ease;
+}
+
+.admin-modal-content {
+    width: 95%;
+    max-width: 650px;
+    max-height: 94vh;
+    background: #111;
+    border-radius: 24px;
+    padding: 25px;
+    position: relative;
+    display: flex;
+    /* Critical for scroll area */
+    flex-direction: column;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-modal-scroll-area {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    padding-right: 15px;
+    margin-right: -10px;
+    /* Counter-acting padding for scrollbar */
+    padding-bottom: 20px;
+    overscroll-behavior: contain;
+}
+
+.admin-modal-scroll-area::-webkit-scrollbar {
+    width: 4px;
+}
+
+.admin-modal-scroll-area::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.admin-modal-scroll-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+@keyframes adminFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.close-modal-btn-v2 {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.6;
+}
+
+.close-modal-btn-v2:hover {
+    color: #E50914 !important;
+    transform: rotate(90deg);
+    opacity: 1;
+}
+
+@media (max-width: 600px) {
+    .admin-modal-content {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .admin-modal-overlay {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    .admin-movies-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
