@@ -384,7 +384,21 @@ function openMovieModal(id, updateUrl = true) {
         const title = movie ? movie.name : 'مشاهدة';
         const newUrl = window.location.pathname + '?id=' + id;
         history.pushState({ movieId: id }, title, newUrl);
-        if (movie) document.title = title + " | كفومنك";
+        if (movie) {
+            document.title = title + " | كفومنك";
+
+            // Update Meta Description
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc) {
+                metaDesc.setAttribute('content', (movie.description || movie.name) + " - شاهد الآن على كفومنك.");
+            }
+
+            // Update Canonical
+            let canonical = document.querySelector('link[rel="canonical"]');
+            if (canonical) {
+                canonical.setAttribute('href', "https://kafotv.github.io" + newUrl);
+            }
+        }
     }
 
     // Increment view count in background
