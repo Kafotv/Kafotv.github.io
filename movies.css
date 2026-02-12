@@ -757,6 +757,58 @@ footer {
     text-decoration: underline;
 }
 
+/* Accessibility Utilities */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Skeleton Loading Animation */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+}
+
+.skeleton-text {
+    height: 14px;
+    width: 70%;
+    margin-top: 8px;
+    border-radius: 4px;
+}
+
+.skeleton-card {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.skeleton-poster {
+    width: 100%;
+    aspect-ratio: 2/3;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+
 /* Mobile Optimizations */
 @media (max-width: 600px) {
     .movies-mode header {
