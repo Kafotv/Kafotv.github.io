@@ -229,7 +229,7 @@ function renderMoviesList(listToRender = null) {
     const heroSlider = document.getElementById('hero-slider');
     if (heroSlider) {
         if (latestAdditions.length === 0) heroSlider.innerHTML = '<div style="padding: 20px; color: #666; font-size: 12px;">لا توجد إضافات حالياً</div>';
-        else heroSlider.innerHTML = latestAdditions.map((mov, index) => createHeroCardHTML(mov, index)).join('');
+        else heroSlider.innerHTML = latestAdditions.slice(0, 15).map((mov, index) => createHeroCardHTML(mov, index)).join('');
     }
 
     // Render Ramadan Slider
@@ -239,7 +239,7 @@ function renderMoviesList(listToRender = null) {
         console.log("Checking Ramadan Visibility:", { content: ramadanContent.length, setting: CONFIG_SHOW_RAMADAN });
         if (ramadanContent.length > 0 && CONFIG_SHOW_RAMADAN) {
             ramadanSection.style.display = 'block';
-            ramadanSlider.innerHTML = ramadanContent.map(mov => createMovieCardHTML(mov)).join('');
+            ramadanSlider.innerHTML = ramadanContent.slice(0, 20).map(mov => createMovieCardHTML(mov)).join('');
         } else {
             ramadanSection.style.display = 'none';
         }
@@ -255,14 +255,14 @@ function renderMoviesList(listToRender = null) {
     const seriesSlider = document.getElementById('series-slider');
     if (seriesSlider) {
         if (sortedSeries.length === 0) seriesSlider.innerHTML = '<div style="padding: 20px; color: #666; font-size: 12px;">لا توجد مسلسلات حالياً</div>';
-        else seriesSlider.innerHTML = sortedSeries.map(mov => createMovieCardHTML(mov)).join('');
+        else seriesSlider.innerHTML = sortedSeries.slice(0, 20).map(mov => createMovieCardHTML(mov)).join('');
     }
 
     // Render Movies Slider
     const moviesSlider = document.getElementById('movies-slider');
     if (moviesSlider) {
         if (sortedMovies.length === 0) moviesSlider.innerHTML = '<div style="padding: 20px; color: #666; font-size: 12px;">لا توجد أفلام حالياً</div>';
-        else moviesSlider.innerHTML = sortedMovies.map(mov => createMovieCardHTML(mov)).join('');
+        else moviesSlider.innerHTML = sortedMovies.slice(0, 20).map(mov => createMovieCardHTML(mov)).join('');
     }
 
     // Start auto-sliders
@@ -277,7 +277,7 @@ function createMovieCardHTML(mov) {
         <a href="${movieUrl}" class="movie-card" onclick="openMovieModal('${mov.id}'); return false;">
             <div class="movie-poster-wrapper">
                 ${mov.type === 'series' ? '<span class="movie-type-badge series">مسلسل</span>' : ''}
-                <img src="${mov.image || 'assets/placeholder.jpg'}" class="movie-poster" alt="${name}" loading="lazy" onerror="this.src='https://placehold.co/200x300/111/333?text=Kafomnak'">
+                <img src="${mov.image || 'assets/placeholder.jpg'}" class="movie-poster" alt="${name}" loading="lazy" width="200" height="300" onerror="this.src='https://placehold.co/200x300/111/333?text=Kafomnak'">
             </div>
             <div class="movie-info-overlay">
                 <div class="movie-title">${name}</div>
@@ -301,7 +301,7 @@ function createHeroCardHTML(mov, index = 0) {
             <div class="movie-poster-wrapper">
                 ${mov.type === 'series' ? '<span class="movie-type-badge series">مسلسل</span>' : ''}
                 <span class="movie-type-badge special">مميز</span>
-                <img src="${mov.image || 'assets/placeholder.jpg'}" class="movie-poster" alt="${name}" loading="${loadingAttr}" onerror="this.src='https://placehold.co/200x300/111/333?text=Kafomnak'">
+                <img src="${mov.image || 'assets/placeholder.jpg'}" class="movie-poster" alt="${name}" loading="${loadingAttr}" width="400" height="225" onerror="this.src='https://placehold.co/200x300/111/333?text=Kafomnak'">
                 
                 <div class="movie-info-overlay hero-overlay">
                     <div class="movie-title hero-title-text">${name}</div>
