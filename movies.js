@@ -229,7 +229,7 @@ function renderMoviesList(listToRender = null) {
     const heroSlider = document.getElementById('hero-slider');
     if (heroSlider) {
         if (latestAdditions.length === 0) heroSlider.innerHTML = '<div style="padding: 20px; color: #666; font-size: 12px;">لا توجد إضافات حالياً</div>';
-        else heroSlider.innerHTML = latestAdditions.map(mov => createHeroCardHTML(mov)).join('');
+        else heroSlider.innerHTML = latestAdditions.map((mov, index) => createHeroCardHTML(mov, index)).join('');
     }
 
     // Render Ramadan Slider
@@ -287,18 +287,21 @@ function createMovieCardHTML(mov) {
     `;
 }
 
-function createHeroCardHTML(mov) {
+function createHeroCardHTML(mov, index = 0) {
     const name = String(mov.name || 'بدون اسم');
     const descText = String(mov.description || '');
     const desc = descText ? descText.substring(0, 100) + '...' : 'لا يوجد وصف متاح لهذا العمل حالياً.';
     const movieUrl = `movies.html?id=${mov.id}`;
+
+    // Improve LCP: First item should load immediately
+    const loadingAttr = index === 0 ? 'eager' : 'lazy';
 
     return `
         <a href="${movieUrl}" class="movie-card hero-card" onclick="openMovieModal('${mov.id}'); return false;">
             <div class="movie-poster-wrapper">
                 ${mov.type === 'series' ? '<span class="movie-type-badge series">مسلسل</span>' : ''}
                 <span class="movie-type-badge special">مميز</span>
-                <img src="${mov.image || 'assets/placeholder.jpg'}" class="movie-poster" alt="${name}" loading="lazy" onerror="this.src='https://placehold.co/200x300/111/333?text=Kafomnak'">
+                <img src="${mov.image || 'assets/placeholder.jpg'}" class="movie-poster" alt="${name}" loading="${loadingAttr}" onerror="this.src='https://placehold.co/200x300/111/333?text=Kafomnak'">
                 
                 <div class="movie-info-overlay hero-overlay">
                     <div class="movie-title hero-title-text">${name}</div>
