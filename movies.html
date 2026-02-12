@@ -150,6 +150,7 @@
 
             <div class="search-filter-wrapper">
                 <div class="movies-search-container">
+                    <label for="movies-search" class="visually-hidden">البحث عن فيلم أو مسلسل</label>
                     <input type="text" id="movies-search" placeholder="ابحث عن فيلم أو مسلسل..."
                         onkeyup="filterMovies()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -160,6 +161,7 @@
                 </div>
 
                 <div class="filter-container">
+                    <label for="type-filter" class="visually-hidden">فلتر النوع</label>
                     <select id="type-filter" onchange="filterMovies()">
                         <option value="all">الكل</option>
                         <option value="movie">أفلام</option>
@@ -168,6 +170,7 @@
                 </div>
 
                 <div class="filter-container">
+                    <label for="genre-filter" class="visually-hidden">فلتر التصنيف</label>
                     <select id="genre-filter" onchange="filterMovies()">
                         <option value="all">جميع التصنيفات</option>
                         <!-- Other options will be dynamically added or I can hardcode common ones -->
@@ -184,13 +187,13 @@
             </div>
 
             <!-- Ad Container -->
-            <div id="ad-container" class="ad-container"></div>
+            <div id="ad-container" class="ad-container" style="min-height: 1px;"></div>
 
             <!-- Generic Grid View (Used for Search Results & See More) -->
             <div id="grid-view-container" style="display: none;">
                 <div class="grid-view-header">
                     <h3 class="section-title" id="grid-view-title">نتائج البحث</h3>
-                    <button class="back-btn" onclick="closeGridView()">
+                    <button class="back-btn" onclick="closeGridView()" aria-label="إغلاق">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -222,16 +225,33 @@
                 <div class="category-section hero-section">
                     <h3 class="section-title hero-title">المميز الاكثر مشاهدة</h3>
                     <div class="slider-wrapper hero-wrapper">
-                        <button class="slider-nav-btn prev" onclick="moveSlider('hero-slider', 1)">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('hero-slider', 1)" aria-label="السابق">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"></polyline>
                             </svg>
                         </button>
                         <div class="movies-slider hero-slider" id="hero-slider">
-                            <div class="slider-loading">جاري التحميل...</div>
+                            <!-- Skeleton Loader -->
+                            <div class="movie-card skeleton-card">
+                                <div class="movie-poster-wrapper skeleton skeleton-poster"></div>
+                                <div class="skeleton skeleton-text"></div>
+                            </div>
+                            <div class="movie-card skeleton-card">
+                                <div class="movie-poster-wrapper skeleton skeleton-poster"></div>
+                                <div class="skeleton skeleton-text"></div>
+                            </div>
+                            <div class="movie-card skeleton-card">
+                                <div class="movie-poster-wrapper skeleton skeleton-poster"></div>
+                                <div class="skeleton skeleton-text"></div>
+                            </div>
+                            <div class="movie-card skeleton-card">
+                                <div class="movie-poster-wrapper skeleton skeleton-poster"></div>
+                                <div class="skeleton skeleton-text"></div>
+                            </div>
+                            <div class="slider-loading" style="display:none;">جاري التحميل...</div>
                         </div>
-                        <button class="slider-nav-btn next" onclick="moveSlider('hero-slider', -1)">
+                        <button class="slider-nav-btn next" onclick="moveSlider('hero-slider', -1)" aria-label="التالي">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -249,7 +269,8 @@
                         <button class="see-more-btn" onclick="showCategory('ramadan')">مشاهدة المزيد</button>
                     </div>
                     <div class="slider-wrapper ramadan-wrapper">
-                        <button class="slider-nav-btn prev" onclick="moveSlider('ramadan-slider', 1)">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('ramadan-slider', 1)"
+                            aria-label="السابق">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"></polyline>
@@ -258,7 +279,8 @@
                         <div class="movies-slider ramadan-slider" id="ramadan-slider">
                             <div class="slider-loading">جاري التحميل...</div>
                         </div>
-                        <button class="slider-nav-btn next" onclick="moveSlider('ramadan-slider', -1)">
+                        <button class="slider-nav-btn next" onclick="moveSlider('ramadan-slider', -1)"
+                            aria-label="التالي">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -276,7 +298,8 @@
                         <button class="see-more-btn" onclick="showCategory('series')">مشاهدة المزيد</button>
                     </div>
                     <div class="slider-wrapper">
-                        <button class="slider-nav-btn prev" onclick="moveSlider('series-slider', 1)">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('series-slider', 1)"
+                            aria-label="السابق">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"></polyline>
@@ -285,7 +308,8 @@
                         <div class="movies-slider" id="series-slider">
                             <div class="slider-loading">جاري التحميل...</div>
                         </div>
-                        <button class="slider-nav-btn next" onclick="moveSlider('series-slider', -1)">
+                        <button class="slider-nav-btn next" onclick="moveSlider('series-slider', -1)"
+                            aria-label="التالي">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -301,7 +325,8 @@
                         <button class="see-more-btn" onclick="showCategory('movie')">مشاهدة المزيد</button>
                     </div>
                     <div class="slider-wrapper">
-                        <button class="slider-nav-btn prev" onclick="moveSlider('movies-slider', 1)">
+                        <button class="slider-nav-btn prev" onclick="moveSlider('movies-slider', 1)"
+                            aria-label="السابق">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"></polyline>
@@ -310,7 +335,8 @@
                         <div class="movies-slider" id="movies-slider">
                             <div class="slider-loading">جاري التحميل...</div>
                         </div>
-                        <button class="slider-nav-btn next" onclick="moveSlider('movies-slider', -1)">
+                        <button class="slider-nav-btn next" onclick="moveSlider('movies-slider', -1)"
+                            aria-label="التالي">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -346,7 +372,7 @@
     <!-- Movie Modal -->
     <div class="movie-modal" id="movie-modal">
         <div class="modal-content-wrapper">
-            <button class="close-modal-btn" onclick="closeMovieModal()">
+            <button class="close-modal-btn" onclick="closeMovieModal()" aria-label="إغلاق">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
