@@ -56,11 +56,20 @@ ${allUrls.map(url => `    <url>
     </url>`).join('\n')}
 </urlset>`;
 
-        // 2. Generate sitemap.txt
+        // 2. Generate sitemap_index.xml (Proper Index Format)
+        const indexContent = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <sitemap>
+        <loc>${BASE_URL}/sitemap.xml</loc>
+        <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    </sitemap>
+</sitemapindex>`;
+
+        // 3. Generate sitemap.txt
         const txtContent = allUrls.join('\n');
 
         fs.writeFileSync('sitemap.xml', xmlContent);
-        fs.writeFileSync('sitemap_index.xml', xmlContent); // keeping the index as a clone
+        fs.writeFileSync('sitemap_index.xml', indexContent);
         fs.writeFileSync('sitemap.txt', txtContent);
 
         console.log('Sitemaps updated successfully!');
