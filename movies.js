@@ -81,6 +81,20 @@ window.addEventListener('popstate', (e) => {
 function handleDeepLink() {
     const urlParams = new URLSearchParams(window.location.search);
     const movieId = urlParams.get('id');
+
+    // SEO: Update Meta/Canonical immediately if ID is present
+    if (movieId) {
+        const movieUrl = `https://kafotv.github.io/movies.html?id=${movieId}`;
+        const canonical = document.getElementById('canonical-link');
+        if (canonical) canonical.setAttribute('href', movieUrl);
+
+        const ogUrl = document.getElementById('og-url');
+        if (ogUrl) ogUrl.setAttribute('content', movieUrl);
+
+        // Initial title while loading
+        document.title = 'جاري التحميل... | كفومنك';
+    }
+
     if (movieId) {
         // Wait for data to be ready
         const checkData = setInterval(() => {
