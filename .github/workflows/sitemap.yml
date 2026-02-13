@@ -36,7 +36,7 @@ jobs:
         if [[ -n $(git status --porcelain) ]]; then
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add sitemap.xml sitemap_index.xml sitemap.txt robots.txt
+          git add sitemap-main.xml sitemap-index.xml sitemap.txt robots.txt .nojekyll
           git commit -m "Automated sitemap update (Dynamic)"
           git push
         else
