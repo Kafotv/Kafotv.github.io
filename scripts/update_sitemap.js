@@ -42,12 +42,9 @@ async function run() {
             ...movieIds.map(id => `${BASE_URL}/movies.html?id=${id}`)
         ];
 
-        // 1. Generate sitemap.xml
+        // Generate a single, simple sitemap.xml
         const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allUrls.map(url => `    <url>
         <loc>${url}</loc>
         <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
@@ -56,21 +53,17 @@ ${allUrls.map(url => `    <url>
     </url>`).join('\n')}
 </urlset>`;
 
-        // 2. Generate sitemap-index.xml (Proper Index Format)
-        const indexContent = `<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <sitemap>
-        <loc>${BASE_URL}/sitemap-main.xml</loc>
-        <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    </sitemap>
-</sitemapindex>`;
-
-        // 3. Generate sitemap.txt
         const txtContent = allUrls.join('\n');
 
-        fs.writeFileSync('sitemap-main.xml', xmlContent);
-        fs.writeFileSync('sitemap-index.xml', indexContent);
+        fs.writeFileSync('sitemap.xml', xmlContent);
         fs.writeFileSync('sitemap.txt', txtContent);
+
+        // Remove old filenames to avoid confusion
+        if (fs.existsSync('sitemap-main.xml')) fs.unlinkSync('sitemap-main.xml');
+        if (fs.existsSync('sitemap-index.xml')) fs.unlinkSync('sitemap-index.xml');
+        if (fs.existsSync('sitemap_index.xml')) fs.unlinkSync('sitemap_index.xml');
+
+        console.log('Sitemaps simplified and updated successfully!');
 
         console.log('Sitemaps updated successfully!');
     } catch (e) {
