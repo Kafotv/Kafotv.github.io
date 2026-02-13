@@ -636,7 +636,6 @@ body.modal-open {
     flex-wrap: wrap;
     /* Wrap buttons for a clean list look */
     gap: 10px;
-    max-height: 200px;
     overflow-y: auto;
     padding: 2px;
 }
@@ -1901,4 +1900,5 @@ footer {
         font-size: 8px;
     }
 }
+
 
