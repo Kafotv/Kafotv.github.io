@@ -429,6 +429,26 @@ function openMovieModal(id, updateUrl = true) {
     modal.querySelector('.modal-meta').textContent = (movie.type === 'series' ? 'مسلسل' : 'فيلم') + (movie.note ? ' • ' + movie.note : '');
     modal.querySelector('.modal-movie-description').textContent = movie.description || 'لا يوجد وصف متاح.';
 
+    // Dynamic SEO Updates
+    const movieUrl = `https://kafotv.github.io/movies.html?id=${movie.id}`;
+    const siteTitle = document.title.split('|')[1]?.trim() || 'كفومنك';
+
+    document.title = `${movie.name} | ${siteTitle}`;
+
+    const metaDesc = document.getElementById('meta-description');
+    if (metaDesc) metaDesc.setAttribute('content', movie.description || `شاهد ${movie.name} بجودة عالية على كفومنك`);
+
+    const canonical = document.getElementById('canonical-link');
+    if (canonical) canonical.setAttribute('href', movieUrl);
+
+    // OG Tags
+    const ogTitle = document.getElementById('og-title');
+    const ogDesc = document.getElementById('og-description');
+    const ogUrl = document.getElementById('og-url');
+    if (ogTitle) ogTitle.setAttribute('content', movie.name);
+    if (ogDesc) ogDesc.setAttribute('content', movie.description || '');
+    if (ogUrl) ogUrl.setAttribute('content', movieUrl);
+
     // Servers list
     const grid = modal.querySelector('.servers-grid');
     grid.innerHTML = '';
@@ -518,14 +538,23 @@ function closeMovieModal(updateUrl = true) {
 
     if (updateUrl) {
         history.pushState(null, 'أفلام ومسلسلات | كفومنك', window.location.pathname);
-        // Restore title from settings if available, or use default
-        db.collection('settings').doc('platform').get().then(doc => {
-            if (doc.exists && doc.data().siteTitle) {
-                document.title = 'أفلام ومسلسلات | ' + doc.data().siteTitle;
-            } else {
-                document.title = 'أفلام ومسلسلات | كفومنك';
-            }
-        });
+
+        // Restore SEO Metadata
+        const siteTitle = 'كفومنك';
+        document.title = 'أفلام ومسلسلات | ' + siteTitle;
+
+        const metaDesc = document.getElementById('meta-description');
+        if (metaDesc) metaDesc.setAttribute('content', 'شاهد أحدث الأفلام والمسلسلات العربية والتركية بجودة عالية HD. مكتبة ضخمة متجددة يومياً على كفومنك.');
+
+        const canonical = document.getElementById('canonical-link');
+        if (canonical) canonical.setAttribute('href', 'https://kafotv.github.io/movies.html');
+
+        const ogTitle = document.getElementById('og-title');
+        const ogDesc = document.getElementById('og-description');
+        const ogUrl = document.getElementById('og-url');
+        if (ogTitle) ogTitle.setAttribute('content', 'أفلام ومسلسلات كفومنك');
+        if (ogDesc) ogDesc.setAttribute('content', 'سينما في منزلك. أحدث الأفلام والمسلسلات بجودة عالية.');
+        if (ogUrl) ogUrl.setAttribute('content', 'https://kafotv.github.io/movies.html');
     }
 
     // Cleanup placeholder
