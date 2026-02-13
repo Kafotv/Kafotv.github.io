@@ -36,7 +36,8 @@ jobs:
         if [[ -n $(git status --porcelain) ]]; then
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add sitemap-main.xml sitemap-index.xml sitemap.txt robots.txt .nojekyll
+          git add sitemap.xml sitemap.txt robots.txt .nojekyll
+          git add -u sitemap-main.xml sitemap-index.xml # Ensure old files are staged for deletion if they exist
           git commit -m "Automated sitemap update (Dynamic)"
           git push
         else
