@@ -449,6 +449,22 @@ function openMovieModal(id, updateUrl = true) {
     if (ogDesc) ogDesc.setAttribute('content', movie.description || '');
     if (ogUrl) ogUrl.setAttribute('content', movieUrl);
 
+    // Update JSON-LD (Schema.org)
+    const schemaScript = document.getElementById('schema-ld');
+    if (schemaScript) {
+        const schema = [
+            {
+                "@context": "https://schema.org",
+                "@type": "Movie",
+                "name": movie.name,
+                "description": movie.description || "",
+                "image": movie.image || "",
+                "url": movieUrl
+            }
+        ];
+        schemaScript.textContent = JSON.stringify(schema, null, 2);
+    }
+
     // Servers list
     const grid = modal.querySelector('.servers-grid');
     grid.innerHTML = '';
@@ -555,6 +571,21 @@ function closeMovieModal(updateUrl = true) {
         if (ogTitle) ogTitle.setAttribute('content', 'أفلام ومسلسلات كفومنك');
         if (ogDesc) ogDesc.setAttribute('content', 'سينما في منزلك. أحدث الأفلام والمسلسلات بجودة عالية.');
         if (ogUrl) ogUrl.setAttribute('content', 'https://kafotv.github.io/movies.html');
+
+        // Restore generic JSON-LD
+        const schemaScript = document.getElementById('schema-ld');
+        if (schemaScript) {
+            const genericSchema = [
+                {
+                    "@context": "https://schema.org",
+                    "@type": "WebPage",
+                    "name": "قسم الأفلام والمسلسلات | كفومنك",
+                    "description": "مكتبة ضخمة من الأفلام والمسلسلات العربية والأجنبية بجودة عالية.",
+                    "url": "https://kafotv.github.io/movies.html"
+                }
+            ];
+            schemaScript.textContent = JSON.stringify(genericSchema, null, 2);
+        }
     }
 
     // Cleanup placeholder
