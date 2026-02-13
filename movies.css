@@ -1480,7 +1480,6 @@ footer {
     justify-content: center;
     color: #fff;
     text-align: center;
-    padding: 20px;
     position: relative;
     overflow: hidden;
 }
@@ -1497,13 +1496,12 @@ footer {
 }
 
 .coming-soon-icon {
-    margin-bottom: 20px;
     color: #E50914;
     animation: placeholderPulse 2s infinite ease-in-out;
 }
 
 .episode-coming-soon h2 {
-    font-size: 24px;
+    font-size: 18px;
     margin-bottom: 10px;
     color: #FFD700;
     /* Gold */
