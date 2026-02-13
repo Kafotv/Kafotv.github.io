@@ -55,8 +55,17 @@ ${allUrls.map(url => `    <url>
 
         const txtContent = allUrls.join('\n');
 
+        // Generate IndexNow JSON format
+        const indexNowContent = JSON.stringify({
+            host: "kafotv.github.io",
+            key: "4ffa22697a14486f96cbe887dda5ebbe",
+            keyLocation: "https://kafotv.github.io/4ffa22697a14486f96cbe887dda5ebbe.txt",
+            urlList: allUrls
+        }, null, 2);
+
         fs.writeFileSync('sitemap.xml', xmlContent);
         fs.writeFileSync('sitemap.txt', txtContent);
+        fs.writeFileSync('indexnow.json', indexNowContent);
 
         // Remove old filenames to avoid confusion
         if (fs.existsSync('sitemap-main.xml')) fs.unlinkSync('sitemap-main.xml');
