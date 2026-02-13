@@ -57,7 +57,3 @@ jobs:
               "https://kafotv.github.io/kids.html"
             ]
           }'
-
-    - name: Ping Google
-      run: |
-        curl "https://www.google.com/ping?sitemap=https://kafotv.github.io/sitemap.xml"
