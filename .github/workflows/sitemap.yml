@@ -36,9 +36,9 @@ jobs:
         if [[ -n $(git status --porcelain) ]]; then
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add sitemap.xml sitemap.txt robots.txt .nojekyll
+          git add sitemap.xml sitemap.txt robots.txt .nojekyll indexnow.json
           git add -u sitemap-main.xml sitemap-index.xml # Ensure old files are staged for deletion if they exist
-          git commit -m "Automated sitemap update (Dynamic)"
+          git commit -m "Automated sitemap and IndexNow update"
           git push
         else
           echo "No changes to commit"
@@ -48,13 +48,4 @@ jobs:
       run: |
         curl -X POST "https://api.indexnow.org/indexnow" \
           -H "Content-Type: application/json" \
-          -d '{
-            "host": "kafotv.github.io",
-            "key": "4ffa22697a14486f96cbe887dda5ebbe",
-            "keyLocation": "https://kafotv.github.io/4ffa22697a14486f96cbe887dda5ebbe.txt",
-            "urlList": [
-              "https://kafotv.github.io/",
-              "https://kafotv.github.io/movies.html",
-              "https://kafotv.github.io/kids.html"
-            ]
-          }'
+          -d @indexnow.json
