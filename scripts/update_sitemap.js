@@ -39,7 +39,7 @@ async function run() {
 
         const allUrls = [
             ...staticPages.map(p => `${BASE_URL}${p}`),
-            ...movieIds.slice(0, 2).map(id => `${BASE_URL}/movies.html?id=${id}`)
+            ...movieIds.map(id => `${BASE_URL}/movies.html?id=${id}`)
         ];
 
         // Generate a single, simple sitemap.xml
