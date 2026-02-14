@@ -1937,8 +1937,8 @@ function requestManualIndex() {
     showToast('جاري إرسال الطلب لـ GitHub...');
 
     // GitHub Repository Dispatch API
-    const repoOwner = 'kafotv'; // Confirm this is the correct owner
-    const repoName = 'sahd';    // Confirm this is the correct repo name
+    const repoOwner = 'kafotv'; // Correct owner based on domain
+    const repoName = 'kafotv.github.io'; // Correct repo name for GitHub Pages main site
     const ghDispatchUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/dispatches`;
 
     fetch(ghDispatchUrl, {
