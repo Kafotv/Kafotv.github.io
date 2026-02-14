@@ -1,0 +1,33 @@
+name: Manual Google Indexing
+
+on:
+  repository_dispatch:
+    types: [google_indexing]
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to index'
+        required: true
+        default: 'https://kafotv.github.io/'
+
+jobs:
+  indexing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install googleapis
+
+      - name: Run Indexing Script
+        env:
+          INDEXING_URL: ${{ github.event.client_payload.url || github.event.inputs.url }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+        run: node scripts/manual_indexing.js
