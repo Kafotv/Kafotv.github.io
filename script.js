@@ -1915,7 +1915,7 @@ async function deleteMovie(id) {
     }
 }
 
-// --- SEO & Indexing Tools ---
+// --- SEO & Indexing Tools (v1.3 - GitHub Actions) ---
 function requestManualIndex() {
     const urlInput = document.getElementById('indexing-url-input');
     const url = urlInput ? urlInput.value : '';
@@ -1925,43 +1925,51 @@ function requestManualIndex() {
         return;
     }
 
-    addSeoLog(`جاري إرسال طلب الأرشفة للرابط: ${url}...`);
-    showToast('جاري إرسال طلب الأرشفة...');
+    // Get GitHub Token from local storage or prompt
+    let ghToken = localStorage.getItem('gh_indexing_token');
+    if (!ghToken) {
+        ghToken = prompt('يرجى إدخال GitHub Personal Access Token لتكملة العملية:');
+        if (ghToken) localStorage.setItem('gh_indexing_token', ghToken);
+        else return;
+    }
 
-    const netlifyUrl = 'https://kafotv.netlify.app/.netlify/functions/indexing';
-    const vercelUrl = 'https://kafomnak.vercel.app/api/indexing';
+    addSeoLog(`[v1.3] جاري محاولة تشغيل GitHub Action للرابط: ${url}...`);
+    showToast('جاري إرسال الطلب لـ GitHub...');
 
-    const sendRequest = (endpoint, isFallback = false) => {
-        addSeoLog(`محاولة الاتصال بـ ${isFallback ? 'Vercel fallback' : 'Netlify main'}...`);
+    // GitHub Repository Dispatch API
+    const repoOwner = 'kafotv'; // Confirm this is the correct owner
+    const repoName = 'sahd';    // Confirm this is the correct repo name
+    const ghDispatchUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/dispatches`;
 
-        return fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: url })
+    fetch(ghDispatchUrl, {
+        method: 'POST',
+        headers: {
+            'Authorization': `token ${ghToken}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            event_type: 'google_indexing',
+            client_payload: { url: url }
         })
-            .then(async res => {
-                const data = await res.json();
-                if (res.ok && data.success) {
-                    showToast('تم إرسال طلب الأرشفة بنجاح');
-                    addSeoLog(`SUCCESS [${isFallback ? 'Vercel' : 'Netlify'}]: تم قبول الطلب بنجاح.`);
-                    return true;
-                } else {
-                    throw { message: data.error || 'خطأ من الخادم', hint: data.hint, statusCode: res.status };
-                }
-            });
-    };
-
-    sendRequest(netlifyUrl)
-        .catch(err => {
-            console.error('Netlify indexing failed:', err);
-            addSeoLog(`Netlify failed: ${err.message || 'CORS or Connection Error'}. جاري تجربة البديل...`);
-            return sendRequest(vercelUrl, true);
+    })
+        .then(res => {
+            if (res.status === 204) {
+                showToast('تم إرسال الطلب لـ GitHub بنجاح');
+                addSeoLog(`SUCCESS: تم تشغيل GitHub Action بنجاح. يمكنك متابعة التقدم من تبويب Actions في GitHub.`);
+                addSeoLog(`رابط المتابعة: https://github.com/${repoOwner}/${repoName}/actions`);
+            } else if (res.status === 401) {
+                localStorage.removeItem('gh_indexing_token');
+                showToast('خطأ: Token غير صحيح');
+                addSeoLog(`ERROR: الـ GitHub Token غير صحيح أو منتهي الصلاحية.`);
+            } else {
+                return res.json().then(data => { throw data; });
+            }
         })
         .catch(err => {
-            console.error('Vercel indexing failed:', err);
-            showToast('فشلت جميع المحاولات');
-            addSeoLog(`FATAL ERROR: فشلت جميع المحاولات للاتصال بـ Netlify و Vercel.`);
-            addSeoLog(`التفاصيل: ${err.message || 'خطأ في الاتصال'}`);
+            console.error('GitHub API error:', err);
+            showToast('خطأ في إرسال الطلب');
+            addSeoLog(`ERROR: فشل الاتصال بـ GitHub API. ${err.message || ''}`);
         });
 }
 
