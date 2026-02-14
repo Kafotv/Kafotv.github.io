@@ -1928,27 +1928,40 @@ function requestManualIndex() {
     addSeoLog(`جاري إرسال طلب الأرشفة للرابط: ${url}...`);
     showToast('جاري إرسال طلب الأرشفة...');
 
-    fetch('https://kafotv.netlify.app/.netlify/functions/indexing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url })
-    })
-        .then(res => res.json())
-        .then(data => {
-            console.log('Indexing response:', data);
-            if (data.success) {
-                showToast('تم إرسال طلب الأرشفة بنجاح');
-                addSeoLog(`SUCCESS: تم قبول الطلب من قبل قوقل بنجاح.`);
-            } else {
-                showToast('فشل طلب الأرشفة');
-                addSeoLog(`ERROR: ${data.error || 'خطأ غير معروف'}`);
-                if (data.hint) addSeoLog(`HINT: ${data.hint}`);
-            }
+    const netlifyUrl = 'https://kafotv.netlify.app/.netlify/functions/indexing';
+    const vercelUrl = 'https://kafomnak.vercel.app/api/indexing';
+
+    const sendRequest = (endpoint, isFallback = false) => {
+        addSeoLog(`محاولة الاتصال بـ ${isFallback ? 'Vercel fallback' : 'Netlify main'}...`);
+
+        return fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+        })
+            .then(async res => {
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast('تم إرسال طلب الأرشفة بنجاح');
+                    addSeoLog(`SUCCESS [${isFallback ? 'Vercel' : 'Netlify'}]: تم قبول الطلب بنجاح.`);
+                    return true;
+                } else {
+                    throw { message: data.error || 'خطأ من الخادم', hint: data.hint, statusCode: res.status };
+                }
+            });
+    };
+
+    sendRequest(netlifyUrl)
+        .catch(err => {
+            console.error('Netlify indexing failed:', err);
+            addSeoLog(`Netlify failed: ${err.message || 'CORS or Connection Error'}. جاري تجربة البديل...`);
+            return sendRequest(vercelUrl, true);
         })
         .catch(err => {
-            console.error('Indexing fetch error:', err);
-            showToast('خطأ في الاتصال بالخادم');
-            addSeoLog(`FETCH ERROR: تأكد من إعدادات CORS أو اتصال الإنترنت.`);
+            console.error('Vercel indexing failed:', err);
+            showToast('فشلت جميع المحاولات');
+            addSeoLog(`FATAL ERROR: فشلت جميع المحاولات للاتصال بـ Netlify و Vercel.`);
+            addSeoLog(`التفاصيل: ${err.message || 'خطأ في الاتصال'}`);
         });
 }
 
