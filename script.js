@@ -1965,69 +1965,17 @@ function requestManualIndex() {
     const url = urlInput ? urlInput.value : '';
 
     if (!url || !url.startsWith('https://kafotv.github.io/')) {
-        showToast('يرجى إدخال رابط صحيح يبدأ بـ https://kafotv.github.io/');
+        showToast('يرجى إدخال رابط صحيح');
         return;
     }
 
-    // Get GitHub Token from local storage or prompt
-    let ghToken = localStorage.getItem('gh_indexing_token');
-    if (!ghToken) {
-        ghToken = prompt('يرجى إدخال GitHub Personal Access Token لتكملة العملية:');
-        if (ghToken) localStorage.setItem('gh_indexing_token', ghToken);
-        else return;
-    }
+    addSeoLog(`🚀 جاري محاولة أرشفة الرابط يدوياً...`);
+    showToast('جاري إرسال الطلب...');
 
-    addSeoLog(`[v1.3] جاري محاولة تشغيل GitHub Action للرابط: ${url}...`);
-    showToast('جاري إرسال الطلب لـ GitHub...');
-
-    // GitHub Repository Dispatch API
-    const repoOwner = 'kafotv'; // Correct owner based on domain
-    const repoName = 'kafotv.github.io'; // Correct repo name for GitHub Pages main site
-    const ghDispatchUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/dispatches`;
-
-    fetch(ghDispatchUrl, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${ghToken}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            event_type: 'google_indexing',
-            client_payload: { url: url }
-        })
-    })
-        .then(async res => {
-            if (res.status === 204) {
-                showToast('تم إرسال الطلب لـ GitHub بنجاح');
-                addSeoLog(`SUCCESS: تم تشغيل GitHub Action بنجاح.`);
-                addSeoLog(`رابط المتابعة: https://github.com/${repoOwner}/${repoName}/actions`);
-            } else {
-                const status = res.status;
-                const statusText = res.statusText;
-                addSeoLog(`ERROR: GitHub API returned ${status} ${statusText}`);
-
-                if (status === 404) {
-                    addSeoLog(`HINT: تأكد من أن الرابط والمستودع صحيحين، وأن الـ Token لديه صلاحية 'repo'.`);
-                    addSeoLog(`الرابط الذي حاولنا الاتصال به: ${ghDispatchUrl}`);
-                } else if (status === 401) {
-                    localStorage.removeItem('gh_indexing_token');
-                    showToast('خطأ: Token غير صحيح');
-                }
-
-                try {
-                    const data = await res.json();
-                    addSeoLog(`Details: ${JSON.stringify(data)}`);
-                } catch (e) {
-                    // Not JSON or empty body
-                }
-            }
-        })
-        .catch(err => {
-            console.error('GitHub API error:', err);
-            showToast('خطأ في إرسال الطلب');
-            addSeoLog(`FETCH ERROR: ${err.message || 'خطأ في الاتصال'}`);
-        });
+    triggerGitHubIndexing(url).then(success => {
+        if (success) showToast('تم إرسال الطلب بنجاح');
+        else showToast('فشل إرسال الطلب');
+    });
 }
 
 function pingIndexNow() {
@@ -2049,8 +1997,8 @@ function addSeoLog(msg) {
     if (!log) return;
     log.style.display = 'block';
     const time = new Date().toLocaleTimeString();
-    log.innerHTML += `<div style="margin-bottom: 5px; border-bottom: 1px solid #222; padding-bottom: 2px;">
-        <span style="color: #888;">[${time}]</span> ${msg}
+    log.innerHTML += `<div style="margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px;">
+        <span style="color: #666;">[${time}]</span> ${msg}
     </div>`;
     log.scrollTop = log.scrollHeight;
 }
