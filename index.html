@@ -360,6 +360,14 @@
                     </svg>
                     إعدادات المنصة
                 </button>
+                <button class="tab-btn" onclick="switchAdminTab('seo-tab')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    الأرشفة و SEO
+                </button>
             </div>
 
             <!-- Channels Tab Content -->
@@ -763,6 +771,85 @@
                     </div>
 
                     <button class="btn-primary" onclick="savePlatformSettings()">حفظ التغييرات</button>
+                </div>
+            </div>
+
+            <!-- SEO & Indexing Tab Content -->
+            <div id="seo-tab" class="admin-tab-content" style="display: none;">
+                <div class="modal-header" style="margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="background: #4285F4; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 style="font-size: 18px;">الأرشفة و SEO</h2>
+                        <p style="font-size: 12px; color: var(--text-muted);">تحسين ظهور الموقع في محركات البحث</p>
+                    </div>
+                </div>
+
+                <div class="admin-forms-container"
+                    style="padding: 25px; background: rgba(66, 133, 244, 0.05); border-radius: 16px; border: 1px solid rgba(66, 133, 244, 0.2);">
+
+                    <h3
+                        style="color: #4285F4; font-size: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        أدوات أرشفة قوقل الفوريه (Indexing API)
+                    </h3>
+
+                    <div class="input-group">
+                        <label>رابط الصفحة المطلوب أرشفتها</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="indexing-url-input" placeholder="https://kafotv.github.io/..."
+                                style="flex: 1;">
+                            <button class="btn-primary" style="width: auto; padding: 0 20px;"
+                                onclick="requestManualIndex()">إرسال طلب</button>
+                        </div>
+                        <p style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">
+                            ملاحظة: سيقوم هذا الإجراء بإرسال طلب فوري لقوقل للزحف إلى هذا الرابط.
+                        </p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                        <button class="btn-primary btn-outline btn-sm"
+                            onclick="document.getElementById('indexing-url-input').value = 'https://kafotv.github.io/'">إدخال
+                            الرابط الرئيسي</button>
+                        <button class="btn-primary btn-outline btn-sm"
+                            onclick="document.getElementById('indexing-url-input').value = window.location.href">إدخال
+                            رابط الصفحة الحالية</button>
+                    </div>
+
+                    <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--glass-stroke);">
+                        <h3
+                            style="color: #00bcd4; font-size: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                </path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                            أدوات IndexNow (لـ Bing و Yandex)
+                        </h3>
+                        <div
+                            style="background: rgba(0, 188, 212, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(0, 188, 212, 0.1);">
+                            <p style="font-size: 12px; margin-bottom: 15px;">إرسال تحديث شامل لجميع روابط الموقع إلى
+                                محركات بحث Bing و Yandex فورياً.</p>
+                            <button class="btn-primary" style="background: #00bcd4;" onclick="pingIndexNow()">تحديث جميع
+                                الروابط (IndexNow)</button>
+                        </div>
+                    </div>
+
+                    <div id="seo-log"
+                        style="margin-top: 20px; padding: 15px; background: #000; border-radius: 12px; font-family: monospace; font-size: 11px; color: #0f0; display: none; max-height: 150px; overflow-y: auto; border: 1px solid #333;">
+                        <!-- Logs will appear here -->
+                    </div>
                 </div>
             </div>
 
