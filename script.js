@@ -1862,16 +1862,13 @@ function saveMovie() {
             showToast('تم الحفظ بنجاح');
             hideMoviesForm();
 
-            // Request Indexing (Background)
-            // Using absolute URL to support cross-origin requests from GitHub Pages
-            fetch('https://kafotv.netlify.app/.netlify/functions/indexing', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: `https://kafotv.github.io/movies.html?id=${id}` })
-            })
-                .then(res => res.json())
-                .then(d => console.log('Indexing triggered:', d))
-                .catch(err => console.error('Indexing failed:', err));
+            // Request Indexing via GitHub Action (v1.5 Automation)
+            if (typeof triggerGitHubIndexing === 'function') {
+                triggerGitHubIndexing(`https://kafotv.github.io/movies.html?id=${id}`)
+                    .then(success => {
+                        if (success) console.log('Automatic Indexing Triggered');
+                    }).catch(() => { });
+            }
         })
         .catch(e => {
             console.error("Movies Save Error:", e);
@@ -1915,7 +1912,54 @@ async function deleteMovie(id) {
     }
 }
 
-// --- SEO & Indexing Tools (v1.3 - GitHub Actions) ---
+// --- SEO & Indexing Tools (v1.5 - Automation & Bulk) ---
+function saveGitHubToken() {
+    const input = document.getElementById('gh-token-input');
+    if (input && input.value) {
+        localStorage.setItem('gh_indexing_token', input.value);
+        showToast('تم حفظ التوكن بنجاح');
+        addSeoLog('✅ تم تحديث وحفظ GitHub Token محلياً.');
+    }
+}
+
+function triggerGitHubIndexing(url) {
+    const ghToken = localStorage.getItem('gh_indexing_token');
+    if (!ghToken) {
+        addSeoLog(`⚠️ تخطي الأرشفة للرابط ${url}: لم يتم إدخال GitHub Token.`);
+        return Promise.reject('Missing Token');
+    }
+
+    const repoOwner = 'kafotv';
+    const repoName = 'kafotv.github.io';
+    const ghDispatchUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/dispatches`;
+
+    return fetch(ghDispatchUrl, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${ghToken}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            event_type: 'google_indexing',
+            client_payload: { url: url }
+        })
+    })
+        .then(res => {
+            if (res.status === 204) {
+                addSeoLog(`✅ SUCCESS: تم إرسال طلب أرشفة لـ: ${url}`);
+                return true;
+            } else {
+                addSeoLog(`❌ FAILED: فشل طلب لـ ${url} (Status: ${res.status})`);
+                return false;
+            }
+        })
+        .catch(err => {
+            addSeoLog(`❌ ERROR: خطأ في الاتصال لـ ${url}`);
+            return false;
+        });
+}
+
 function requestManualIndex() {
     const urlInput = document.getElementById('indexing-url-input');
     const url = urlInput ? urlInput.value : '';
@@ -2011,5 +2055,53 @@ function addSeoLog(msg) {
     log.scrollTop = log.scrollHeight;
 }
 
+async function bulkIndexAllMovies() {
+    if (MOVIES.length === 0) {
+        showToast('لا يوجد أفلام للأرشفة');
+        return;
+    }
+
+    const confirmed = confirm(`هل أنت متأكد من أرشفة جميع الأفلام (${MOVIES.length} فيلم)؟ قد يستغرق هذا وقتاً طويلاً.`);
+    if (!confirmed) return;
+
+    const progressContainer = document.getElementById('bulk-indexing-progress-container');
+    const progressBar = document.getElementById('bulk-progress-bar');
+    const progressText = document.getElementById('bulk-progress-text');
+    const progressPercent = document.getElementById('bulk-progress-percent');
+
+    if (progressContainer) progressContainer.style.display = 'block';
+    addSeoLog(`🏗️ بدء عملية أرشفة جماعية لـ ${MOVIES.length} فيلم...`);
+
+    let processed = 0;
+    for (const movie of MOVIES) {
+        const url = `https://kafotv.github.io/movies.html?id=${movie.id}`;
+        if (progressText) progressText.textContent = `جاري أرشفة: ${movie.name}`;
+
+        await triggerGitHubIndexing(url);
+
+        processed++;
+        const percent = Math.round((processed / MOVIES.length) * 100);
+        if (progressBar) progressBar.style.width = percent + '%';
+        if (progressPercent) progressPercent.textContent = percent + '%';
+
+        // Delay to avoid GitHub API Secondary Rate Limit (1.5s delay)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+
+    if (progressText) progressText.textContent = 'تم اكتمال الأرشفة الجماعية!';
+    addSeoLog(`✨ تم الانتهاء من أرشفة جميع الأفلام بنجاح.`);
+}
+
+// Load Token if exists
+document.addEventListener('DOMContentLoaded', () => {
+    const savedToken = localStorage.getItem('gh_indexing_token');
+    if (savedToken) {
+        const input = document.getElementById('gh-token-input');
+        if (input) input.value = savedToken;
+    }
+});
+
 window.requestManualIndex = requestManualIndex;
+window.bulkIndexAllMovies = bulkIndexAllMovies;
+window.saveGitHubToken = saveGitHubToken;
 window.pingIndexNow = pingIndexNow;
