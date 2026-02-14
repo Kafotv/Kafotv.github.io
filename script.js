@@ -1944,7 +1944,7 @@ function requestManualIndex() {
     fetch(ghDispatchUrl, {
         method: 'POST',
         headers: {
-            'Authorization': `token ${ghToken}`,
+            'Authorization': `Bearer ${ghToken}`,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json'
         },
@@ -1953,23 +1953,36 @@ function requestManualIndex() {
             client_payload: { url: url }
         })
     })
-        .then(res => {
+        .then(async res => {
             if (res.status === 204) {
                 showToast('تم إرسال الطلب لـ GitHub بنجاح');
-                addSeoLog(`SUCCESS: تم تشغيل GitHub Action بنجاح. يمكنك متابعة التقدم من تبويب Actions في GitHub.`);
+                addSeoLog(`SUCCESS: تم تشغيل GitHub Action بنجاح.`);
                 addSeoLog(`رابط المتابعة: https://github.com/${repoOwner}/${repoName}/actions`);
-            } else if (res.status === 401) {
-                localStorage.removeItem('gh_indexing_token');
-                showToast('خطأ: Token غير صحيح');
-                addSeoLog(`ERROR: الـ GitHub Token غير صحيح أو منتهي الصلاحية.`);
             } else {
-                return res.json().then(data => { throw data; });
+                const status = res.status;
+                const statusText = res.statusText;
+                addSeoLog(`ERROR: GitHub API returned ${status} ${statusText}`);
+
+                if (status === 404) {
+                    addSeoLog(`HINT: تأكد من أن الرابط والمستودع صحيحين، وأن الـ Token لديه صلاحية 'repo'.`);
+                    addSeoLog(`الرابط الذي حاولنا الاتصال به: ${ghDispatchUrl}`);
+                } else if (status === 401) {
+                    localStorage.removeItem('gh_indexing_token');
+                    showToast('خطأ: Token غير صحيح');
+                }
+
+                try {
+                    const data = await res.json();
+                    addSeoLog(`Details: ${JSON.stringify(data)}`);
+                } catch (e) {
+                    // Not JSON or empty body
+                }
             }
         })
         .catch(err => {
             console.error('GitHub API error:', err);
             showToast('خطأ في إرسال الطلب');
-            addSeoLog(`ERROR: فشل الاتصال بـ GitHub API. ${err.message || ''}`);
+            addSeoLog(`FETCH ERROR: ${err.message || 'خطأ في الاتصال'}`);
         });
 }
 
